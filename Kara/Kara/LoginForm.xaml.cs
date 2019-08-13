@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Xamarin.Forms;
 using Kara.CustomRenderer;
 using Kara.Helpers;
+using Xamarin.Essentials;
 
 namespace Kara
 {
@@ -128,7 +129,11 @@ namespace Kara
             App.Password.Value = _Password;
             App.UserPersonnelId.Value = Result.Data.PersonnelId;
             App.UserRealName.Value = Result.Data.RealName;
-            
+
+            var location = await App.CheckGps();
+            if (location == null)
+                return;
+
             await Navigation.PushAsync(new MainMenu()
             {
                 StartColor = Color.FromHex("E6EBEF"),
@@ -147,5 +152,7 @@ namespace Kara
             }
             Navigation.RemovePage(this);
         }
+
+        
     }
 }

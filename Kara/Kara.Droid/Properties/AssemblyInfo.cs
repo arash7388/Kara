@@ -39,6 +39,12 @@ using Android.App;
 [assembly: Application(Debuggable=false)]
 #endif
 
+//[assembly: UsesPermission(Android.Manifest.Permission.AccessCoarseLocation)]
+//[assembly: UsesPermission(Android.Manifest.Permission.AccessFineLocation)]
+//[assembly: UsesFeature("android.hardware.location", Required = false)]
+//[assembly: UsesFeature("android.hardware.location.gps", Required = false)]
+//[assembly: UsesFeature("android.hardware.location.network", Required = false)]
+
 //#if RELEASE
 //[assembly: MetaDataAttribute("com.google.android.maps.v2.API_KEY", Value="AIzaSyDb594FBiD28_1-lzjF2U_qlJ-NR5wLtQU")]
 //#else

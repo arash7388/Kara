@@ -16,6 +16,7 @@ using Android.App.Admin;
 using Android.Locations;
 using Kara.Assets;
 using System.Threading.Tasks;
+using Plugin.CurrentActivity;
 
 namespace Kara.Droid
 {
@@ -83,23 +84,11 @@ namespace Kara.Droid
             LoadApplication(new App());
 
             KaraNewServiceLauncher.StartAndScheduleAlarmManagerForkaraNewService(this);
-            
-            //App.KaraTimeProvider = new KaraTimeProvider();
-            //App.InternetDate = new InternetDate();
 
-            //KaraNewService.SetSettings
-            //(
-            //    App.ServerAddress,
-            //    App.DailyTrackingBeginTime_Seconds.Value,
-            //    App.DailyTrackingEndTime_Seconds.Value,
-            //    App.MaxAcceptableAccuracy.Value,
-            //    App.GetLocationsPerid.Value,
-            //    App.ShouldTurnGPSAndNetworkAutomatically.Value,
-            //    App.GPSTracking_GPSShouldBeTurnedOnToWorkWithApp.Value,
-            //    App.GPSTracking_NetworkShouldBeTurnedOnToWorkWithApp.Value
-            //);   
+            Xamarin.Essentials.Platform.Init(this, bundle); // add this line to your code, it may also be called: bundle
+                                                                        
         }
-        
+
         //#region Error handling
         private static void TaskSchedulerOnUnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs unobservedTaskExceptionEventArgs)
         {
@@ -204,39 +193,6 @@ namespace Kara.Droid
             return System.IO.Path.Combine(path, filename);
         }
 
-        //private async void CheckMajorSystemSettingsToBeTruelySet(int? requestCode)
-        //{
-        //    if (requestCode.HasValue)
-        //    {
-        //        var SettingDialougeLaunched = false;
-        //        if ((SettingDialougeLauncherRequestCode)requestCode == SettingDialougeLauncherRequestCode.DeviceAdminSetting)
-        //            SettingDialougeLaunched = App.MajorDeviceSetting.CheckDeviceAdminSetting();
-        //        else if ((SettingDialougeLauncherRequestCode)requestCode == SettingDialougeLauncherRequestCode.DateTime)
-        //            SettingDialougeLaunched = App.MajorDeviceSetting.CheckDateTimeSetting();
-        //        else if ((SettingDialougeLauncherRequestCode)requestCode == SettingDialougeLauncherRequestCode.GPSSetting)
-        //            SettingDialougeLaunched = App.MajorDeviceSetting.CheckGPSSetting();
-        //        else if ((SettingDialougeLauncherRequestCode)requestCode == SettingDialougeLauncherRequestCode.GPSPermission)
-        //            SettingDialougeLaunched = App.MajorDeviceSetting.CheckGPSPermission();
-        //        else if ((SettingDialougeLauncherRequestCode)requestCode == SettingDialougeLauncherRequestCode.InternetConnection)
-        //            SettingDialougeLaunched = await App.MajorDeviceSetting.CheckInternetConnection(false);
-
-        //        if (!SettingDialougeLaunched)
-        //            CheckMajorSystemSettingsToBeTruelySet(null);
-        //    }
-        //    else
-        //    {
-        //        var OneSettingCheckLaunched = App.MajorDeviceSetting.CheckDeviceAdminSetting();
-        //        if (!OneSettingCheckLaunched)
-        //            OneSettingCheckLaunched = App.MajorDeviceSetting.CheckDateTimeSetting();
-        //        if (!OneSettingCheckLaunched)
-        //            OneSettingCheckLaunched = App.MajorDeviceSetting.CheckGPSSetting();
-        //        if (!OneSettingCheckLaunched)
-        //            OneSettingCheckLaunched = App.MajorDeviceSetting.CheckGPSPermission();
-        //        if (!OneSettingCheckLaunched)
-        //            OneSettingCheckLaunched = await App.MajorDeviceSetting.CheckInternetConnection(false);
-        //    }
-        //}
-
         protected override void OnStart()
         {
             base.OnStart();
@@ -282,105 +238,9 @@ namespace Kara.Droid
             {
                 //CheckMajorSystemSettingsToBeTruelySet(requestCode);
             }
+
+            Plugin.Permissions.PermissionsImplementation.Current.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }
-
-        //TODO
-        //class AutoTimeChangedReceiver : BroadcastReceiver
-        //{
-        //    public ContentResolver ContentResolver { get; set; }
-        //    public override void OnReceive(Context context, Android.Content.Intent intent)
-        //    {
-        //        if (Android.Provider.Settings.Global.GetInt(ContentResolver, Android.Provider.Settings.Global.AutoTime, 0) == 1)
-        //            App.MajorDeviceSettingsChanged(App.ChangedMajorDeviceSetting.AutomaticTimeEnabled);
-        //        if (Android.Provider.Settings.Global.GetInt(ContentResolver, Android.Provider.Settings.Global.AutoTime, 0) != 1)
-        //            App.MajorDeviceSettingsChanged(App.ChangedMajorDeviceSetting.AutomaticTimeDisabled);
-        //    }
-        //}
-
-
-        //class KaraNewServiceLocationChangedReceiver : BroadcastReceiver
-        //{
-        //    public override void OnReceive(Context context, Android.Content.Intent intent)
-        //    {
-        //        var NewLocationStr = intent.GetStringExtra("NewLocation");
-        //        if(!string.IsNullOrEmpty(NewLocationStr))
-        //        {
-        //            var NewLocation = NewLocationModel.FromString(NewLocationStr);
-        //            if(NewLocation.DeviceState == (int)Kara.Assets.DeviceState.GoodLocation || NewLocation.DeviceState == (int)Kara.Assets.DeviceState.LocationWithTooMuchError)
-        //                App.LastLocation = NewLocation;
-        //        }
-        //    }
-        //}
-
-        //class KaraNewServiceUnsentLocationAvailableReceiver : BroadcastReceiver
-        //{
-        //    public override void OnReceive(Context context, Android.Content.Intent intent)
-        //    {
-        //        ((MainActivity)context).GetUnsentLocationsFromKaraNewService();
-        //        InvokeAbortBroadcast();
-        //    }
-        //}
-
-        //class KaraNewServiceKaraTimeChangedReceiver : BroadcastReceiver
-        //{
-        //    public override void OnReceive(Context context, Android.Content.Intent intent)
-        //    {
-        //        var KaraTimeStr = intent.GetStringExtra("KaraTime");
-        //        if (!string.IsNullOrEmpty(KaraTimeStr))
-        //            DateTime.Now = Convert.ToDateTime(KaraTimeStr);
-        //    }
-        //}
-
-        //void GetUnsentLocationsFromKaraNewService()
-        //{
-        //    //if (isBound)
-        //    //{
-        //    //    RunOnUiThread(async () =>
-        //    //    {
-        //    //        var karaNewService = binder.GetKaraNewService();
-        //    //        while (true)
-        //    //        {
-        //    //            var locations = karaNewService.GetLocations();
-
-        //    //            if (locations != null)
-        //    //            {
-        //    //                var result = await App.DB.InsertAllRecordsAsync<NewLocationModel>(locations);
-        //    //                if (result.Success)
-        //    //                    karaNewService.LocationsReceived(locations);
-
-        //    //                if (locations.Count < 100)
-        //    //                    break;
-        //    //            }
-        //    //        }
-        //    //    });
-        //    //}
-        //}
-
-        //class KaraNewServiceConnection : Java.Lang.Object, IServiceConnection
-        //{
-        //    MainActivity activity;
-        //
-        //    public KaraNewServiceConnection(MainActivity activity)
-        //    {
-        //        this.activity = activity;
-        //    }
-        //
-        //    public void OnServiceConnected(ComponentName name, IBinder service)
-        //    {
-        //        var karaNewServiceBinder = service as KaraNewServiceBinder;
-        //        if (karaNewServiceBinder != null)
-        //        {
-        //            var binder = (KaraNewServiceBinder)service;
-        //            activity.binder = binder;
-        //            activity.isBound = true;
-        //        }
-        //    }
-        //
-        //    public void OnServiceDisconnected(ComponentName name)
-        //    {
-        //        activity.isBound = false;
-        //    }
-        //}
     }
     
     public class FontsOverride

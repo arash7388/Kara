@@ -224,7 +224,7 @@ namespace Kara.Droid
         }
 
         static bool? TimeIsAutomatic = null;
-        static bool? GPSIsOn = null;
+        public static bool? GPSIsOn = null;
         static bool? GPSPermissionIsGranted = null;
         static bool? InternetIsConnected = null;
         //private async Task CheckForAutoTimeEnabledForeverAsync()

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Xamarin.Forms;
 using Kara.CustomRenderer;
 using Kara.Assets;
+using Xamarin.Essentials;
 
 namespace Kara
 {
@@ -15,10 +16,11 @@ namespace Kara
         Image[] MenuImages;
         Label[] MenuLabels;
         
+        
         public MainMenu()
         {
             InitializeComponent();
-
+            
             SetTodayDateAsTitle();
             
             UserNameMenu = new ToolbarItem() { Text = App.UserRealName.Value, Priority = 0, Order = ToolbarItemOrder.Primary };
@@ -49,6 +51,8 @@ namespace Kara
 
             MenuImages = new Image[] { Image_Customers, Image_InsertOrder, Image_InsertFailedVisit, Image_Visits, Image_PartnerReport, Image_Report, Image_UpdateDB, Image_Settings, Image_Backups };
             MenuLabels = new Label[] { Label_Customers, Label_InsertOrder, Label_InsertFailedVisit, Label_Visits, Label_PartnerReport, Label_Report, Label_UpdateDB, Label_Settings, Label_Backups };
+
+            
 
             Image_Customers.GestureRecognizers.Add(new TapGestureRecognizer(MainMenu_GoToPartnerListForm));
             Image_InsertOrder.GestureRecognizers.Add(new TapGestureRecognizer(MainMenu_GoToOrderInsertForm));
@@ -83,6 +87,22 @@ namespace Kara
                 await this.Navigation.PushAsync(LoginForm);
                 this.Navigation.RemovePage(this);
             }
+        }
+
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+            var task = Task.Run(async 
+                () =>
+                {
+                    var loc = await App.CheckGps();
+                    if(loc==null)
+                    {
+                        await Navigation.PushAsync(new MessageForm());
+                    }
+                }
+            );
+
         }
 
         DateTime? LastBackButtonPressedTime = null;
@@ -182,9 +202,9 @@ namespace Kara
             });
         }
         
-        void MainMenu_GoToPartnerListForm(View arg1, object arg2)
+        async void MainMenu_GoToPartnerListForm(View arg1, object arg2)
         {
-            Navigation.PushAsync(new PartnerListForm());
+                        await  Navigation.PushAsync(new PartnerListForm());
         }
 
         void MainMenu_GoToOrderInsertForm(View arg1, object arg2)

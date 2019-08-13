@@ -12,6 +12,7 @@ using Kara.Models;
 using SQLite;
 using Kara.CustomRenderer;
 using System.Reflection;
+using Xamarin.Essentials;
 
 namespace Kara
 {
@@ -775,5 +776,41 @@ namespace Kara
                 return new ResultSuccess<SaleOrder>(false, err.ProperMessage());
             }
         }
+
+        public static async Task<Location> CheckGps()
+        {
+            try
+            {
+                var request = new GeolocationRequest(GeolocationAccuracy.Medium);
+                var location = await Geolocation.GetLocationAsync(request);
+
+                if (location != null)
+                {
+                    return location;
+                }
+            }
+            catch (FeatureNotSupportedException fnsEx)
+            {
+                // Handle not supported on device exception
+            }
+            catch (FeatureNotEnabledException fneEx)
+            {
+                // Handle not enabled on device exception
+                App.ToastMessageHandler.ShowMessage("جهت استفاده از برنامه باید مکان یاب فعال باشد", ToastMessageDuration.Long);
+            }
+            catch (PermissionException pEx)
+            {
+                // Handle permission exception
+                App.ToastMessageHandler.ShowMessage("خطا در دسترسی به مکان یاب", ToastMessageDuration.Long);
+            }
+            catch (Exception ex)
+            {
+                // Unable to get location
+                //App.ToastMessageHandler.ShowMessage("جهت استفاده از برنامه باید مکان یاب فعال باشد", ToastMessageDuration.Long);
+            }
+
+            return null;
+        }
+
     }
 }
