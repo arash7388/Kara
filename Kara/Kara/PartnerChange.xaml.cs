@@ -62,6 +62,9 @@ namespace Kara
 
             EditingPartner = Partner;
 
+            //این 2 گروه در گروه مشتری ها نمی آیند
+            //مشتریان بدون گروه
+            //پرسنل شرکت
             PartnerGroups = App.DB.GetPartnerGroups().Where(a => a.Id != new Guid("00000000-0000-0000-0000-FFFFFFFFFFFF") && a.Id != new Guid("00000000-0000-0000-0000-EEEEEEEEEEEE")).ToArray();
             PartnerGroupSwitchs = new KeyValuePair<Label, Switch>[PartnerGroups.Length];
             for (int i = 0; i < PartnerGroups.Length; i++)
@@ -94,7 +97,7 @@ namespace Kara
             Route = new RightRoundedLabel() { Text = "", HorizontalTextAlignment = TextAlignment.End, HorizontalOptions = LayoutOptions.FillAndExpand, VerticalOptions = LayoutOptions.FillAndExpand, FontSize = 18 };
             RoutePicker = new Picker() { };
             RouteChangeButton = new LeftEntryCompanionLabel() { VerticalOptions = LayoutOptions.FillAndExpand, HorizontalOptions = LayoutOptions.FillAndExpand, HorizontalTextAlignment = TextAlignment.Center, FontSize = 18, Text = "..." };
-            
+
             FillZones(EditingPartner != null ? EditingPartner.ZoneId : new Nullable<Guid>(), EditingPartner != null ? EditingPartner.Groups.Select(a => a.Id).ToArray() : new Guid[] { });
 
             FirstName = new MyEntry() { Text = EditingPartner != null ? EditingPartner.FirstName : "", HorizontalTextAlignment = TextAlignment.End, HorizontalOptions = LayoutOptions.FillAndExpand, RightRounded = true, LeftRounded = true, Padding = new Thickness(30, 10) };
@@ -114,14 +117,14 @@ namespace Kara
 
             IsPartnerLegal = new Switch() { IsToggled = EditingPartner != null ? EditingPartner.IsLegal : false, HorizontalOptions = LayoutOptions.End };
             CalculateVATForThisPerson = new Switch() { IsToggled = EditingPartner != null ? EditingPartner.CalculateVATForThisPerson : false, HorizontalOptions = LayoutOptions.End };
-            
+
             ToolbarItem_LocalSave = new ToolbarItem();
             ToolbarItem_LocalSave.Text = "ذخیره محلی";
             ToolbarItem_LocalSave.Icon = "Save.png";
             ToolbarItem_LocalSave.Activated += SubmitPartnerToStorage;
             ToolbarItem_LocalSave.Order = ToolbarItemOrder.Primary;
             ToolbarItem_LocalSave.Priority = 0;
-            if(!JustShow)
+            if (!JustShow)
                 this.ToolbarItems.Add(ToolbarItem_LocalSave);
 
             ToolbarItem_SendToServer = new ToolbarItem();
@@ -130,7 +133,7 @@ namespace Kara
             ToolbarItem_SendToServer.Activated += SubmitPartnerToServer;
             ToolbarItem_SendToServer.Order = ToolbarItemOrder.Primary;
             ToolbarItem_SendToServer.Priority = 0;
-            if(!JustShow)
+            if (!JustShow)
                 this.ToolbarItems.Add(ToolbarItem_SendToServer);
 
             BusyIndicatorContainder.BackgroundColor = Color.FromRgba(255, 255, 255, 70);
@@ -241,7 +244,7 @@ namespace Kara
                     };
                     PartnerDataLayoutGrid.Children.Add(IsPartnerLegalStack, 4, RowIndex);
                     Grid.SetColumnSpan(IsPartnerLegalStack, 3);
-                    
+
                     var CalculateVATForThisPersonStack = new StackLayout()
                     {
                         Orientation = StackOrientation.Horizontal,
@@ -269,7 +272,7 @@ namespace Kara
                     PartnerDataLayoutGrid.RowDefinitions = new RowDefinitionCollection();
                     for (int i = 0; i < 15; i++)
                         PartnerDataLayoutGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(i == 10 ? 80 : i == 14 ? 1 : 40, i == 14 ? GridUnitType.Auto : GridUnitType.Absolute) });
-                    
+
                     PartnerDataLayoutGrid.ColumnDefinitions = new ColumnDefinitionCollection();
                     PartnerDataLayoutGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(40, GridUnitType.Absolute) });
                     PartnerDataLayoutGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(99, GridUnitType.Star) });
@@ -364,7 +367,8 @@ namespace Kara
                     var PartnerGroupsStack = new StackLayout() { Orientation = StackOrientation.Vertical };
                     for (int i = 0; i < PartnerGroups.Length; i++)
                     {
-                        PartnerGroupsStack.Children.Add(new StackLayout() {
+                        PartnerGroupsStack.Children.Add(new StackLayout()
+                        {
                             Orientation = StackOrientation.Horizontal,
                             Children = { PartnerGroupSwitchs[i].Key, PartnerGroupSwitchs[i].Value }
                         });
@@ -378,7 +382,7 @@ namespace Kara
         public async void FillZones(Guid? RouteId, Guid[] GroupIds)
         {
             for (int i = 0; i < PartnerGroups.Length; i++)
-                if(GroupIds.Any(a => a == PartnerGroups[i].Id))
+                if (GroupIds.Any(a => a == PartnerGroups[i].Id))
                     PartnerGroupSwitchs[i].Value.IsToggled = true;
                 else
                     PartnerGroupSwitchs[i].Value.IsToggled = false;
@@ -573,7 +577,7 @@ namespace Kara
                 var CityId = Cities[CityPicker.SelectedIndex].Id;
                 var ZoneId = Zones.Where(a => a.ParentId == CityId).ToArray()[ZonePicker.SelectedIndex].Id;
                 var Route = Routes.Where(a => a.ParentId == ZoneId).ToArray()[RoutePicker.SelectedIndex];
-                
+
                 var DynamicGroups = new DynamicGroupPartner[] { };
                 if (EditingPartner == null)
                 {
@@ -606,6 +610,10 @@ namespace Kara
                         GroupId = PartnerGroups[a.index].Id,
                         PartnerId = EditingPartner.Id
                     }).ToArray();
+
+                    if (!DynamicGroups.Any())
+                        return new ResultSuccess<Partner>(false, "هیچ گروهی انتخاب نشده است.");
+
                     if (!DynamicGroups.Any())
                         DynamicGroups = new DynamicGroupPartner[1] { new DynamicGroupPartner()
                         {
@@ -660,7 +668,7 @@ namespace Kara
                     result = await App.DB.DeletePartnerDynamicGroupsAsync(EditingPartner.Id, EditingPartner.Groups.Select(a => a.Id).ToArray());
                     if (!result.Success)
                         return new ResultSuccess<Partner>(false, result.Message);
-                    
+
                     result = await App.DB.InsertAllRecordsAsync<DynamicGroupPartner>(DynamicGroups);
                     if (!result.Success)
                         return new ResultSuccess<Partner>(false, result.Message);
