@@ -614,12 +614,12 @@ namespace Kara
                     if (!DynamicGroups.Any())
                         return new ResultSuccess<Partner>(false, "هیچ گروهی انتخاب نشده است.");
 
-                    if (!DynamicGroups.Any())
-                        DynamicGroups = new DynamicGroupPartner[1] { new DynamicGroupPartner()
-                        {
-                            GroupId = new Guid("00000000-0000-0000-0000-EEEEEEEEEEEE"),
-                            PartnerId = EditingPartner.Id
-                        } };
+                    //if (!DynamicGroups.Any())
+                    //    DynamicGroups = new DynamicGroupPartner[1] { new DynamicGroupPartner()
+                    //    {
+                    //        GroupId = new Guid("00000000-0000-0000-0000-EEEEEEEEEEEE"),
+                    //        PartnerId = EditingPartner.Id
+                    //    } };
 
                     var result = await App.DB.InsertOrUpdateRecordAsync<Partner>(EditingPartner);
                     if (!result.Success)
@@ -654,12 +654,16 @@ namespace Kara
                         GroupId = PartnerGroups[a.index].Id,
                         PartnerId = EditingPartner.Id
                     }).ToArray();
+
                     if (!DynamicGroups.Any())
-                        DynamicGroups = new DynamicGroupPartner[1] { new DynamicGroupPartner()
-                        {
-                            GroupId = new Guid("00000000-0000-0000-0000-EEEEEEEEEEEE"),
-                            PartnerId = EditingPartner.Id
-                        } };
+                        return new ResultSuccess<Partner>(false, "هیچ گروهی انتخاب نشده است.");
+
+                    //if (!DynamicGroups.Any())
+                    //    DynamicGroups = new DynamicGroupPartner[1] { new DynamicGroupPartner()
+                    //    {
+                    //        GroupId = new Guid("00000000-0000-0000-0000-EEEEEEEEEEEE"),
+                    //        PartnerId = EditingPartner.Id
+                    //    } };
 
                     var result = await App.DB.InsertOrUpdateRecordAsync<Partner>(EditingPartner);
                     if (!result.Success)
