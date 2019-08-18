@@ -17,6 +17,7 @@ using Android.Locations;
 using Kara.Assets;
 using System.Threading.Tasks;
 using Plugin.CurrentActivity;
+using Xamarin.Forms;
 
 namespace Kara.Droid
 {
@@ -196,7 +197,11 @@ namespace Kara.Droid
         protected override void OnStart()
         {
             base.OnStart();
-
+            var loc = App.CheckGps().GetAwaiter().GetResult();
+            if(loc!=null)
+            {
+                MessagingCenter.Send<object, string>(this, "CheckGps", "true");
+            }
             //CheckMajorSystemSettingsToBeTruelySet(null);
         }
 

@@ -16,6 +16,7 @@ using Kara.Droid.Helpers;
 using Android.Util;
 using Kara.Models;
 using Kara.Helpers;
+using Xamarin.Forms;
 
 namespace Kara.Droid
 {
@@ -179,18 +180,32 @@ namespace Kara.Droid
         public void OnProviderDisabled(string provider)
         {
             if (provider == GpsProvider)
+            {
                 GPSIsOn = false;
+                MessagingCenter.Send<object, string>(this, "CheckGps", "false");
+            }
             if (provider == NetworkProvider)
+            {
                 GPSIsOn = false;
+                //MessagingCenter.Send<object, string>(this, "ShowAlertMessage", "network disabled");
+
+            }
         }
         public void OnProviderEnabled(string provider)
         {
             if (provider == GpsProvider)
+            {
                 GPSIsOn = true;
+                MessagingCenter.Send<object, string>(this, "CheckGps", "true");
+            }
             if (provider == NetworkProvider)
+            {
                 GPSIsOn = true;
+                //MessagingCenter.Send<object, string>(this, "ShowAlertMessage", "network enabled");
+            }
             RequestLocationUpdates();
         }
+
         public void OnStatusChanged(string provider, [GeneratedEnum] Availability status, Bundle extras)
         {
         }

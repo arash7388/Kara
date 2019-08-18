@@ -63,6 +63,16 @@ namespace Kara
             Image_Backups.GestureRecognizers.Add(new TapGestureRecognizer(MainMenu_GoToBackupForm));
             Image_PartnerReport.GestureRecognizers.Add(new TapGestureRecognizer(MainMenu_GoToPartnerReportForm));
             Image_Report.GestureRecognizers.Add(new TapGestureRecognizer(MainMenu_GoToReportsForm));
+
+
+            MessagingCenter.Subscribe<object, string>(this, "CheckGps", (sender, msg) =>
+            {
+                Device.BeginInvokeOnMainThread(() => {
+                    bool.TryParse(msg, out bool GpsEnabled);
+                    App.GpsEnabled = GpsEnabled;
+                    App.ToastMessageHandler.ShowMessage( msg,Helpers.ToastMessageDuration.Long);
+                });
+            });
         }
 
         private async void SetTodayDateAsTitle()
@@ -202,9 +212,21 @@ namespace Kara
             });
         }
         
+        private bool CheckGpsConnection()
+        {
+            if(!App.GpsEnabled)
+            {
+                App.ToastMessageHandler.ShowMessage("لطفا مکان یاب را فعال نمایید", Helpers.ToastMessageDuration.Long);
+                return false;
+            }
+
+            return true;
+        }
+        
         async void MainMenu_GoToPartnerListForm(View arg1, object arg2)
         {
-                        await  Navigation.PushAsync(new PartnerListForm());
+            if(CheckGpsConnection())
+              await Navigation.PushAsync(new PartnerListForm());
         }
 
         void MainMenu_GoToOrderInsertForm(View arg1, object arg2)
