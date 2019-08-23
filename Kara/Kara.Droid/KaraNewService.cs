@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 using Android.App;
@@ -37,10 +37,19 @@ namespace Kara.Droid
         public static void StartAndScheduleAlarmManagerForkaraNewService(Context context)
         {
             KaraNewService.MainContext = context;
-            var karaNewServiceIntent = new Intent("com.kara.KaraNewService");
-            karaNewServiceIntent.SetPackage(context.PackageName);
-            context.StartService(karaNewServiceIntent);
-            ScheduleAlarmManagerForkaraNewService(context, karaNewServiceIntent);
+            var karaNewServiceIntent = new Intent(context, typeof(KaraNewService));
+            if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.O)
+            {
+                context.StartForegroundService(karaNewServiceIntent);
+            }
+            else
+            {
+                context.StartService(karaNewServiceIntent);
+            }
+
+            // Commented in the process of convering to forgount service
+            // context.StartService(karaNewServiceIntent);
+            // ScheduleAlarmManagerForkaraNewService(context, karaNewServiceIntent);
         }
 
         public static void ScheduleAlarmManagerForkaraNewService(Context context, Intent karaNewServiceIntent)
@@ -58,9 +67,12 @@ namespace Kara.Droid
 
 
     [Service]
-    [IntentFilter(new String[] { "com.kara.KaraNewService" })]
     public class KaraNewService : Service, ILocationListener
     {
+        public const int SERVICE_RUNNING_NOTIFICATION_ID = 10000;
+        String channelId = "foregroundService";
+
+
         public static Context MainContext { get; set; }
         public static KaraNewService KaraNewServiceInstance;
         //TODO
@@ -79,9 +91,6 @@ namespace Kara.Droid
                 locMgr = (LocationManager)GetSystemService(LocationService);
                 RequestLocationUpdates();
             }
-
-            CheckForPointsForeverAsync();
-
             //CheckForAutoTimeEnabledForeverAsync();
 
             //TODO
@@ -113,6 +122,53 @@ namespace Kara.Droid
 
         public override StartCommandResult OnStartCommand(Android.Content.Intent intent, StartCommandFlags flags, int startId)
         {
+            // Code not directly related to publishing the notification has been omitted for clarity.
+            // Normally, this method would hold the code to be run when the service is started.
+
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+            {
+                NotificationChannel channel = new NotificationChannel(channelId,
+                        "ForgoundNotifChannel",
+                        Android.App.NotificationImportance.Default);
+                channel.LockscreenVisibility = NotificationVisibility.Public;
+                NotificationManager nm =
+                        (NotificationManager)GetSystemService(NotificationService);
+                nm.CreateNotificationChannel(channel);
+            }
+
+            //Notification notification;
+            //if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+            //{
+            //    notification = new Notification.Builder(this, channelId)
+            //            .SetContentTitle("کارا")
+            //            .SetContentText("برنامه کارا در حال اجراست")
+            //            .SetSmallIcon(Resource.Drawable.icon)
+            //            .SetOngoing(true)
+            //            .Build();
+            //}
+            //else
+            //{
+            //    notification = new Notification.Builder(this)
+            //            .SetContentTitle("کارا")
+            //            .SetContentText("برنامه کارا در حال اجراست")
+            //            .SetSmallIcon(Resource.Drawable.icon)
+            //            .SetOngoing(true)
+            //            .Build();
+            //}
+
+            var notification = new Notification.Builder(this, channelId)
+                        .SetContentTitle("کارا")
+                        .SetContentText("برنامه کارا در حال اجراست")
+                        .SetSmallIcon(Resource.Drawable.icon)
+                        .SetOngoing(true)
+                        .Build();
+
+            // Enlist this instance of the service as a foreground service
+            StartForeground(SERVICE_RUNNING_NOTIFICATION_ID, notification);
+
+            CheckForPointsForeverAsync();
+
+
             return StartCommandResult.Sticky;
         }
 
@@ -129,10 +185,6 @@ namespace Kara.Droid
         {
             return null;
         }
-
-
-
-
 
 
         LocationManager locMgr;
@@ -255,7 +307,7 @@ namespace Kara.Droid
         //                var IsTimeAutomatic = Android.Provider.Settings.Global.GetInt(ContentResolver, Android.Provider.Settings.Global.AutoTime, 0) == 1;
         //                if (!IsTimeAutomatic)
         //                    App.MajorDeviceSetting.CheckDateTimeSetting();
-                        
+
         //                if (TimeIsAutomatic.HasValue && TimeIsAutomatic.Value != IsTimeAutomatic)
         //                    App.MajorDeviceSetting.MajorDeviceSettingsChanged(IsTimeAutomatic ? ChangedMajorDeviceSetting.AutomaticTimeEnabled : ChangedMajorDeviceSetting.AutomaticTimeDisabled);
 
@@ -278,7 +330,7 @@ namespace Kara.Droid
 
         //                GPSIsOn = IsGPSOn;
 
-                        
+
         //                //var IsGPSPermissionGranted = Android.Support.V4.Content.ContextCompat.CheckSelfPermission(MainActivity.Instance, Android.Manifest.Permission.AccessFineLocation) == Android.Content.PM.Permission.Granted;
         //                var IsGPSPermissionGranted = PackageManager.CheckPermission(Android.Manifest.Permission.AccessFineLocation, PackageName) == Android.Content.PM.Permission.Granted;
         //                if (!IsGPSPermissionGranted &&
@@ -358,7 +410,7 @@ namespace Kara.Droid
                                 NewLocation = locations.FirstOrDefault(a => CurrentTimeStamp - a.Timestamp <= App.GetLocationsPerid.Value * 1000);
                             }
                         }
-                        
+
                         if (NewLocation == null)
                         {
                             NewLocation = new LocationModel()
@@ -373,7 +425,7 @@ namespace Kara.Droid
                         }
 
                         await App.DB.InsertOrUpdateRecordAsync(NewLocation);
-                        
+
                         SendPointsToServer();
 
                         await Task.Delay(App.GetLocationsPerid.Value * 1000 * 9 / 10);
