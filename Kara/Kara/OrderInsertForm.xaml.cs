@@ -916,7 +916,7 @@ namespace Kara
                 PartnerUncashedChequesPrice = null;
                 PartnerReturnedChequesCount = null;
                 PartnerReturnedChequesPrice = null;
-                RefreshPartnerCycleInformation();
+                await RefreshPartnerCycleInformation();
 
                 var result = await Connectivity.GetPartnerCycleInformationFromServerAsync(SelectedPartner.Id, false);
                 GettingPartnerCycleInformations = 0;
@@ -928,7 +928,7 @@ namespace Kara
                     PartnerReturnedChequesCount = result.Data.ReturnedChequesCount;
                     PartnerReturnedChequesPrice = result.Data.ReturnedChequesPrice;
                 }
-                RefreshPartnerCycleInformation();
+                await RefreshPartnerCycleInformation();
                 if (!result.Success)
                     App.ShowError("خطا", result.Message, "خوب");
             }

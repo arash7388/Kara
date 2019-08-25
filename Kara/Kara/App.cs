@@ -417,6 +417,7 @@ namespace Kara
         }
 
         public static bool GpsEnabled { get; set; }
+        public static bool FirstGpsDetecting { get; set; } = true;
         public static void ShowError(string title, string message, string cancel)
         {
             StaticMainPage.DisplayAlert(title.ReplaceLatinDigits(), message.ReplaceLatinDigits(), cancel.ReplaceLatinDigits());
@@ -797,17 +798,17 @@ namespace Kara
             catch (FeatureNotEnabledException fneEx)
             {
                 // Handle not enabled on device exception
-                //App.ToastMessageHandler.ShowMessage("جهت استفاده از برنامه باید مکان یاب فعال باشد", ToastMessageDuration.Long);
+                App.ToastMessageHandler.ShowMessage("جهت استفاده از برنامه باید مکان یاب فعال باشد", ToastMessageDuration.Long);
             }
             catch (PermissionException pEx)
             {
                 // Handle permission exception
-                //App.ToastMessageHandler.ShowMessage("خطا در دسترسی به مکان یاب", ToastMessageDuration.Long);
+                App.ToastMessageHandler.ShowMessage("خطا در دسترسی به مکان یاب", ToastMessageDuration.Long);
             }
             catch (Exception ex)
             {
                 // Unable to get location
-                //App.ToastMessageHandler.ShowMessage("جهت استفاده از برنامه باید مکان یاب فعال باشد", ToastMessageDuration.Long);
+                App.ToastMessageHandler.ShowMessage("جهت استفاده از برنامه باید مکان یاب فعال باشد", ToastMessageDuration.Long);
             }
 
             return null;

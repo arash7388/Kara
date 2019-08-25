@@ -29,7 +29,9 @@ namespace Kara
                 //});
 
                 //Navigation.RemovePage(this);
-                await Navigation.PopAsync();
+                
+                await Navigation.PopToRootAsync();
+                var c = Navigation.NavigationStack.Count;
             }
                
             

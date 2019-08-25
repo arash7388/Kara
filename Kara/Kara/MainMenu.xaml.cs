@@ -102,16 +102,21 @@ namespace Kara
         protected override void OnAppearing()
         {
             base.OnAppearing();
-            var task = Task.Run(async 
-                () =>
-                {
-                    var loc = await App.CheckGps();
-                    if(loc==null)
+            if (App.FirstGpsDetecting)
+            {
+                App.FirstGpsDetecting = false;
+                App.GpsEnabled = true;
+                                var task = Task.Run(async
+                    () =>
                     {
-                        await Navigation.PushAsync(new MessageForm());
+                        var loc = await App.CheckGps();
+                        if (loc == null)
+                        {
+                            await Navigation.PushAsync(new MessageForm());
+                        }
                     }
-                }
-            );
+                );
+            }
 
         }
 
@@ -229,70 +234,79 @@ namespace Kara
               await Navigation.PushAsync(new PartnerListForm());
         }
 
-        void MainMenu_GoToOrderInsertForm(View arg1, object arg2)
+        async void MainMenu_GoToOrderInsertForm(View arg1, object arg2)
         {
-            var OrderInsertForm = new OrderInsertForm(null, null, null, null, null)
+            if (CheckGpsConnection())
             {
-                StartColor = Color.FromHex("E6EBEF"),
-                EndColor = Color.FromHex("A6CFED")
-            };
-            Navigation.PushAsync(OrderInsertForm);
+                var OrderInsertForm = new OrderInsertForm(null, null, null, null, null)
+                {
+                    StartColor = Color.FromHex("E6EBEF"),
+                    EndColor = Color.FromHex("A6CFED")
+                };
+                await Navigation.PushAsync(OrderInsertForm);
+            }
         }
 
-        void MainMenu_GoToFailedOrderInsertForm(View arg1, object arg2)
+        async void MainMenu_GoToFailedOrderInsertForm(View arg1, object arg2)
         {
-            var FailedOrderInsertForm = new FailedOrderInsertForm(null, null, null, null)
+            if (CheckGpsConnection())
             {
-                StartColor = Color.FromHex("E6EBEF"),
-                EndColor = Color.FromHex("A6CFED")
-            };
-            Navigation.PushAsync(FailedOrderInsertForm);
+                var FailedOrderInsertForm = new FailedOrderInsertForm(null, null, null, null)
+                {
+                    StartColor = Color.FromHex("E6EBEF"),
+                    EndColor = Color.FromHex("A6CFED")
+                };
+                await Navigation.PushAsync(FailedOrderInsertForm);
+            }
         }
 
-        void MainMenu_GoToInsertedInformationsForm(View arg1, object arg2)
+        async void MainMenu_GoToInsertedInformationsForm(View arg1, object arg2)
         {
-            var InsertedInformations = new InsertedInformations();
-            Navigation.PushAsync(InsertedInformations);
+            if (CheckGpsConnection())
+            {
+                var InsertedInformations = new InsertedInformations();
+                await Navigation.PushAsync(InsertedInformations);
+            }
         }
 
-        void MainMenu_GoToSettingForm(View arg1, object arg2)
+        async void MainMenu_GoToSettingForm(View arg1, object arg2)
         {
             var SettingsForm = new SettingsForm()
             {
                 StartColor = Color.FromHex("E6EBEF"),
                 EndColor = Color.FromHex("A6CFED")
             };
-            Navigation.PushAsync(SettingsForm);
+            await Navigation.PushAsync(SettingsForm);
         }
 
-        void MainMenu_GoToBackupForm(View arg1, object arg2)
+        async void MainMenu_GoToBackupForm(View arg1, object arg2)
         {
             var BackupsForm = new BackupsForm()
             {
                 StartColor = Color.FromHex("E6EBEF"),
                 EndColor = Color.FromHex("A6CFED")
             };
-            Navigation.PushAsync(BackupsForm);
+            await Navigation.PushAsync(BackupsForm);
         }
 
-        void MainMenu_GoToPartnerReportForm(View arg1, object arg2)
+        async void MainMenu_GoToPartnerReportForm(View arg1, object arg2)
         {
             var PartnerReportForm = new PartnerReportForm(null);
-            Navigation.PushAsync(PartnerReportForm, false);
+            await Navigation.PushAsync(PartnerReportForm, false);
 
             var PartnerListForm = new PartnerListForm();
             PartnerListForm.PartnerReportForm = PartnerReportForm;
-            Navigation.PushAsync(PartnerListForm);
+            await Navigation.PushAsync(PartnerListForm);
         }
 
-        void MainMenu_GoToReportsForm(View arg1, object arg2)
+        async void MainMenu_GoToReportsForm(View arg1, object arg2)
         {
             var ReportForm = new ReportForm()
             {
                 StartColor = Color.FromHex("E6EBEF"),
                 EndColor = Color.FromHex("A6CFED")
             };
-            Navigation.PushAsync(ReportForm, false);
+            await Navigation.PushAsync(ReportForm, false);
         }
     }
 }
