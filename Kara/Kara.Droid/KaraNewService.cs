@@ -129,7 +129,7 @@ namespace Kara.Droid
             {
                 NotificationChannel channel = new NotificationChannel(channelId,
                         "ForgoundNotifChannel",
-                        Android.App.NotificationImportance.Default);
+                        Android.App.NotificationImportance.High);
                 channel.LockscreenVisibility = NotificationVisibility.Public;
                 NotificationManager nm =
                         (NotificationManager)GetSystemService(NotificationService);
@@ -156,11 +156,22 @@ namespace Kara.Droid
             //            .Build();
             //}
 
+            // Create intent for action close
+            //var intentExit = new Intent();
+            //intentExit.SetAction("خروج");
+            //var pIntent1 = PendingIntent.GetBroadcast(MainContext, 0, intentExit, PendingIntentFlags.CancelCurrent);
+
+            var mainActivityIntent = new Intent(this, typeof(MainActivity));
+            intent.AddFlags(ActivityFlags.ClearTop);
+            var pendingIntent = PendingIntent.GetActivity(KaraNewService.MainContext, 0, mainActivityIntent, PendingIntentFlags.OneShot);
+
             var notification = new Notification.Builder(this, channelId)
                         .SetContentTitle("کارا")
                         .SetContentText("برنامه کارا در حال اجراست")
                         .SetSmallIcon(Resource.Drawable.icon)
                         .SetOngoing(true)
+                        .SetContentIntent(pendingIntent)
+                        //.AddAction(Resource.Drawable.abc_ic_clear_material,"خروج", pIntent1)
                         .Build();
 
             // Enlist this instance of the service as a foreground service
