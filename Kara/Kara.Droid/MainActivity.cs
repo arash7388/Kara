@@ -14,6 +14,7 @@ using Kara.Droid.Helpers;
 using Kara.Helpers;
 using System;
 using System.Threading.Tasks;
+using Xamarin.Forms;
 
 namespace Kara.Droid
 {
@@ -80,11 +81,18 @@ namespace Kara.Droid
 
             }
 
+            MessagingCenter.Subscribe<MainMenu>(this, "MainMenuOpened", StartService);
+
             LoadApplication(new App());
 
+            Xamarin.Essentials.Platform.Init(this, bundle); // add this line to your code, it may also be called: bundle
+        }
+
+        private void StartService(MainMenu page)
+        {
             KaraNewServiceLauncher.StartAndScheduleAlarmManagerForkaraNewService(this);
             RegisterReceiver(terminateReceiver, new IntentFilter("Kara.Droid.MainActivity"));
-            Xamarin.Essentials.Platform.Init(this, bundle); // add this line to your code, it may also be called: bundle
+            //Xamarin.Essentials.Platform.Init(this, bundle); // add this line to your code, it may also be called: bundle
         }
 
         //#region Error handling
