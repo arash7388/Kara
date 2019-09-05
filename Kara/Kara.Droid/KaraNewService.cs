@@ -120,7 +120,7 @@ namespace Kara.Droid
             base.OnStart(intent, startId);
         }
 
-        public override StartCommandResult OnStartCommand(Android.Content.Intent intent, StartCommandFlags flags, int startId)
+        public override StartCommandResult OnStartCommand(Intent karaServiceIntent, StartCommandFlags flags, int startId)
         {
             // Code not directly related to publishing the notification has been omitted for clarity.
             // Normally, this method would hold the code to be run when the service is started.
@@ -161,9 +161,16 @@ namespace Kara.Droid
             //intentExit.SetAction("خروج");
             //var pIntent1 = PendingIntent.GetBroadcast(MainContext, 0, intentExit, PendingIntentFlags.CancelCurrent);
 
+           
             var mainActivityIntent = new Intent(this, typeof(MainActivity));
-            intent.AddFlags(ActivityFlags.ClearTop);
+            karaServiceIntent.AddFlags(ActivityFlags.SingleTop);
             var pendingIntent = PendingIntent.GetActivity(KaraNewService.MainContext, 0, mainActivityIntent, PendingIntentFlags.OneShot);
+
+            var terminateIntent = new Intent();
+            terminateIntent.SetAction("Kara.Droid.MainActivity");
+            terminateIntent.PutExtra("key111", "value111");
+            var pendingTerminateIntent = PendingIntent.GetBroadcast(KaraNewService.MainContext, 0, terminateIntent, PendingIntentFlags.OneShot);
+            //SendBroadcast(terminateIntent);
 
             var notification = new Notification.Builder(this, channelId)
                         .SetContentTitle("کارا")
@@ -171,7 +178,8 @@ namespace Kara.Droid
                         .SetSmallIcon(Resource.Drawable.icon)
                         .SetOngoing(true)
                         .SetContentIntent(pendingIntent)
-                        //.AddAction(Resource.Drawable.abc_ic_clear_material,"خروج", pIntent1)
+                        //.AddAction(Resource.Drawable.abc_ic_ab_back_material,"اجرا", pendingIntent)
+                        .AddAction(Resource.Drawable.abc_btn_colored_material,"خروج", pendingTerminateIntent)
                         .Build();
 
             // Enlist this instance of the service as a foreground service

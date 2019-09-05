@@ -24,6 +24,7 @@ namespace Kara.Droid
         public ComponentName myDeviceAdmin;
         public static Typeface IranSansFont;
         public static MainActivity MainActivityInstance;
+        TerminateIntentReceiver terminateReceiver;
 
         protected override void OnCreate(Bundle bundle)
         {
@@ -76,12 +77,13 @@ namespace Kara.Droid
             }
             catch (Exception err)
             {
+
             }
 
             LoadApplication(new App());
 
             KaraNewServiceLauncher.StartAndScheduleAlarmManagerForkaraNewService(this);
-
+            RegisterReceiver(terminateReceiver, new IntentFilter("Kara.Droid.MainActivity"));
             Xamarin.Essentials.Platform.Init(this, bundle); // add this line to your code, it may also be called: bundle
         }
 
@@ -243,15 +245,26 @@ namespace Kara.Droid
 
             Plugin.Permissions.PermissionsImplementation.Current.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }
+
+
+       
     }
 
+    [BroadcastReceiver(Enabled = true)]
+    [IntentFilter(new[] { "Kara.Droid.MainActivity" })]
+    public class TerminateIntentReceiver : BroadcastReceiver
+    {
+        public override void OnReceive(Context context, Intent intent)
+        {
+            string value = intent.GetStringExtra("key111");
+        }
+    }
     public class FontsOverride
     {
         public static void SetDefaultFont(string staticTypefaceFieldName, Typeface InsteadFont)
         {
             ReplaceFont(staticTypefaceFieldName, InsteadFont);
         }
-
         protected static void ReplaceFont(string staticTypefaceFieldName, Typeface newTypeface)
         {
             try
