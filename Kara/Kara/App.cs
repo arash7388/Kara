@@ -1,18 +1,15 @@
 ﻿using Kara.Assets;
+using Kara.CustomRenderer;
+using Kara.Helpers;
+using Kara.Models;
 using Plugin.Connectivity;
 using Plugin.Settings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Xamarin.Forms;
-using Kara.Helpers;
-using Kara.Models;
-using SQLite;
-using Kara.CustomRenderer;
-using System.Reflection;
 using Xamarin.Essentials;
+using Xamarin.Forms;
 
 namespace Kara
 {
@@ -24,6 +21,7 @@ namespace Kara
         private int _Density;
         private int _FontSize;
         private bool _Selected;
+
         public string MACID
         {
             get { return _MACID; }
@@ -33,6 +31,7 @@ namespace Kara
                 SavePrinters();
             }
         }
+
         public string Title
         {
             get { return _Title; }
@@ -42,7 +41,7 @@ namespace Kara
                 SavePrinters();
             }
         }
-        
+
         public int Width
         {
             get { return _Width; }
@@ -52,6 +51,7 @@ namespace Kara
                 SavePrinters();
             }
         }
+
         public int Density
         {
             get { return _Density; }
@@ -61,6 +61,7 @@ namespace Kara
                 SavePrinters();
             }
         }
+
         public int FontSize
         {
             get { return _FontSize; }
@@ -70,6 +71,7 @@ namespace Kara
                 SavePrinters();
             }
         }
+
         public bool Selected
         {
             get { return _Selected; }
@@ -79,6 +81,7 @@ namespace Kara
                 SavePrinters();
             }
         }
+
         public int PrintWidthPixel { get { return (int)Math.Round(Width / 25.4 * Density); } }
 
         public PrinterSettingModel(string str)
@@ -163,9 +166,9 @@ namespace Kara
             set
             {
                 _Field = value;
-                if(typeof(T).Equals(typeof(bool)))
+                if (typeof(T).Equals(typeof(bool)))
                     CrossSettings.Current.AddOrUpdateValue(Name, (bool)(object)value);
-                else if(typeof(T).Equals(typeof(double)))
+                else if (typeof(T).Equals(typeof(double)))
                     CrossSettings.Current.AddOrUpdateValue(Name, (double)(object)value);
                 else if (typeof(T).Equals(typeof(Guid)))
                     CrossSettings.Current.AddOrUpdateValue(Name, (Guid)(object)value);
@@ -188,11 +191,14 @@ namespace Kara
     public class App : Application
     {
         #region debugFlags
+
         public static int SendLocationsToServerPeriod = 5;
-        #endregion
+
+        #endregion debugFlags
 
         //Settings
         public static SettingField<decimal> VATPercent = new SettingField<decimal>("VATPercent", 0);
+
         public static SettingField<bool> CheckForNegativeStocksOnOrderInsertion = new SettingField<bool>("CheckForNegativeStocksOnOrderInsertion", false);
         public static SettingField<bool> OrderPrintShowMainUnitFee = new SettingField<bool>("OrderPrintShowMainUnitFee", true);
         public static SettingField<bool> OrderPrintShowSmallUnitFee = new SettingField<bool>("OrderPrintShowSmallUnitFee", true);
@@ -204,9 +210,11 @@ namespace Kara
         public static SettingField<TimeSpan?> VisitorEndWorkTime = new SettingField<TimeSpan?>("VisitorEndWorkTime", null);
         public static SettingField<bool> GPSShouldBeTurnedOnDuringWorkTime = new SettingField<bool>("GPSShouldBeTurnedOnDuringWorkTime", false);
         public static SettingField<bool> InternetShouldBeConnectedDuringWorkTime = new SettingField<bool>("InternetShouldBeConnectedDuringWorkTime", false);
+
         //public static SettingField<bool> GPSTracking_GPSShouldBeTurnedOnToWorkWithApp = new SettingField<bool>("GPSTracking_GPSShouldBeTurnedOnToWorkWithApp", false);
         //public static SettingField<bool> GPSTracking_NetworkShouldBeTurnedOnToWorkWithApp = new SettingField<bool>("GPSTracking_NetworkShouldBeTurnedOnToWorkWithApp", false);
         public static SettingField<decimal> ShowSaleVisitProgramPartnersToVisitorHourShift = new SettingField<decimal>("ShowSaleVisitProgramPartnersToVisitorHourShift", 0);
+
         public static SettingField<decimal> DayStartTime = new SettingField<decimal>("DayStartTime", 0);
         public static SettingField<decimal> DayEndTime = new SettingField<decimal>("DayEndTime", 24);
         public static SettingField<string> CompanyNameForPrint = new SettingField<string>("CompanyNameForPrint", "");
@@ -221,17 +229,21 @@ namespace Kara
         private static SettingField<string> _QRScannerInVisitorAppForSelectingStuffTemplates = new SettingField<string>("QRScannerInVisitorAppForSelectingStuffTemplates", "");
         private static string[] __QRScannerInVisitorAppForSelectingStuffTemplates;
 
-        public static string[] QRScannerInVisitorAppForSelectingStuffTemplates {
-            get {
+        public static string[] QRScannerInVisitorAppForSelectingStuffTemplates
+        {
+            get
+            {
                 if (__QRScannerInVisitorAppForSelectingStuffTemplates == null)
                     __QRScannerInVisitorAppForSelectingStuffTemplates = _QRScannerInVisitorAppForSelectingStuffTemplates.Value.Split(new string[] { "|||" }, StringSplitOptions.RemoveEmptyEntries);
                 return __QRScannerInVisitorAppForSelectingStuffTemplates;
             }
-            set {
+            set
+            {
                 _QRScannerInVisitorAppForSelectingStuffTemplates.Value = value.Any() ? value.Aggregate((sum, x) => sum + "|||" + x) : "";
                 __QRScannerInVisitorAppForSelectingStuffTemplates = _QRScannerInVisitorAppForSelectingStuffTemplates.Value.Split(new string[] { "|||" }, StringSplitOptions.RemoveEmptyEntries);
             }
         }
+
         public static SettingField<int> LastPriceListVersion = new SettingField<int>("LastPriceListVersion", 0);
         public static SettingField<int> LastDiscountRuleVersion = new SettingField<int>("LastDiscountRuleVersion", 0);
         public static bool LastPriceListOrDiscountRuleVersionChanged = false;
@@ -283,8 +295,11 @@ namespace Kara
         public static long[] _Last5UniversalLineInApp = new long[3] { 0, 0, 0 };
         public static string Last5UniversalLineInApp { get { return "[" + _Last5UniversalLineInApp[0] + ", " + _Last5UniversalLineInApp[1] + ", " + _Last5UniversalLineInApp[2] + "]"; } }
         public static string SpecialLog = "";
-        public static long UniversalLineInApp {
-            set {
+
+        public static long UniversalLineInApp
+        {
+            set
+            {
                 _Last5UniversalLineInApp[0] = _Last5UniversalLineInApp[1];
                 _Last5UniversalLineInApp[1] = _Last5UniversalLineInApp[2];
                 _Last5UniversalLineInApp[2] = value;
@@ -293,6 +308,7 @@ namespace Kara
 
         //public static IMajorDeviceSetting MajorDeviceSetting;
         public static IKaraVersion KaraVersion;
+
         public static ITCPClient TCPClient;
         public static IDownloader Downloader;
         public static IQRScan QRScanner;
@@ -302,16 +318,21 @@ namespace Kara
         public static IPersianDatePicker PersianDatePicker;
         public static IToastMessage ToastMessageHandler;
         public static IPersianDateConverter PersianDateConverter;
-        public static string CurrentVersionNumber {
+
+        public static string CurrentVersionNumber
+        {
             get
             {
                 return KaraVersion != null ? KaraVersion.GetVersion() : "2.0.0";
             }
         }
+
         public static string DBFileName;
         public static string imagesDirectory;
         private static string _ServerAddress;
-        public static string ServerAddress {
+
+        public static string ServerAddress
+        {
             get
             {
                 if (_ServerAddress == null)
@@ -335,10 +356,10 @@ namespace Kara
                             Selected = Convert.ToBoolean(a.Split('_')[1])
                         });
                 AllAddresses = AllAddresses.Select(a => new
-                    {
-                        Address = a.Address,
-                        Selected = a.Address == value
-                    })
+                {
+                    Address = a.Address,
+                    Selected = a.Address == value
+                })
                     .Union((AllAddresses.Any(a => a.Address == value) ? new string[] { } : new string[] { value }).Select(a => new
                     {
                         Address = a,
@@ -355,22 +376,27 @@ namespace Kara
                 _ServerAddress = value;
             }
         }
+
         public static SettingField<string> AllServerAddresses = new SettingField<string>("AllServerAddresses", "");
 
         public static SettingField<string> AllPrintersStr = new SettingField<string>("AllPrintersStr", "");
         public static List<PrinterSettingModel> _AllPrinters;
+
         public static List<PrinterSettingModel> AllPrinters
         {
             get
             {
-                if(_AllPrinters == null)
+                if (_AllPrinters == null)
                     _AllPrinters = AllPrintersStr.Value.Split(new string[] { "|||" }, StringSplitOptions.RemoveEmptyEntries).Select(a => new PrinterSettingModel(a)).ToList();
                 return _AllPrinters;
             }
         }
-        public static PrinterSettingModel SelectedPrinter {
+
+        public static PrinterSettingModel SelectedPrinter
+        {
             get { return AllPrinters.Any(a => a.Selected) ? AllPrinters.Single(a => a.Selected) : null; }
         }
+
         public static SettingField<int> OrderPreviewFontSize;
 
         public static SettingField<Guid> UserId = new SettingField<Guid>("UserId", Guid.Empty);
@@ -383,19 +409,25 @@ namespace Kara
         public static DBRepository.AccessModel Accesses;
         private static SettlementType[] _SettlementTypes;
         public static SettlementType[] SettlementTypes { get { if (_SettlementTypes == null) _SettlementTypes = DB.GetSettlementTypes(); return _SettlementTypes; } }
-        
+
         public static event EventHandler LocationChanged;
+
         public class LocationChangedEventArgs : EventArgs
         {
             public LocationModel OldLocation { get; set; }
             public LocationModel NewLocation { get; set; }
         }
+
         private static LocationModel _LastLocation;
-        public static LocationModel LastLocation {
-            get {
+
+        public static LocationModel LastLocation
+        {
+            get
+            {
                 return _LastLocation;
             }
-            set {
+            set
+            {
                 if (_LastLocation == null || _LastLocation.Latitude != value.Latitude || _LastLocation.Longitude != value.Longitude || _LastLocation.Accuracy != value.Accuracy)
                 {
                     var OldLocation = _LastLocation;
@@ -418,12 +450,14 @@ namespace Kara
 
         public static bool GpsEnabled { get; set; }
         public static bool FirstGpsDetecting { get; set; } = true;
+
         public static void ShowError(string title, string message, string cancel)
         {
             StaticMainPage.DisplayAlert(title.ReplaceLatinDigits(), message.ReplaceLatinDigits(), cancel.ReplaceLatinDigits());
         }
 
-        static Page StaticMainPage;
+        private static Page StaticMainPage;
+
         private async Task InitializeApp()
         {
             if (NavigationStackState == null)
@@ -473,7 +507,7 @@ namespace Kara
                     LoadingError.Text = CreateTablesResult.Message;
                     return;
                 }
-                
+
                 ContentPage NextForm = UserId.Value != Guid.Empty ?
                 (ContentPage)new MainMenu()
                 {
@@ -485,7 +519,7 @@ namespace Kara
                     StartColor = Color.FromHex("E6EBEF"),
                     EndColor = Color.FromHex("A6CFED")
                 };
-                
+
                 await Task.Delay(2000);
 
                 await MainPage.Navigation.PushAsync(NextForm);
@@ -512,7 +546,7 @@ namespace Kara
             }
 
             var AccessesResult = await App.DB.FetchUserAccessesAsync();
-            
+
             CheckForPersonnelWorkingTime();
 
             StaticMainPage = MainPage;
@@ -521,7 +555,8 @@ namespace Kara
             OrderPreviewFontSize = new SettingField<int>("OrderPreviewFontSize", (int)Math.Round(Math.Min(StaticMainPage.Width, StaticMainPage.Height) * App.DeviceSizeDensity / 70));
 
             if (QRScanner != null)
-                QRScanner.OnScanResult = new Action<QRScanResult>((result) => {
+                QRScanner.OnScanResult = new Action<QRScanResult>((result) =>
+                {
                     //TODO
                 });
         }
@@ -529,7 +564,7 @@ namespace Kara
         private async void CheckForPersonnelWorkingTime()
         {
             var Now = (decimal)DateTime.Now.TimeOfDay.TotalHours;
-            if(App.DayStartTime.Value <= Now && Now <= App.DayEndTime.Value)
+            if (App.DayStartTime.Value <= Now && Now <= App.DayEndTime.Value)
             {
                 await Task.Delay(60);
                 GoToOutOfBoundTimeForm();
@@ -543,13 +578,14 @@ namespace Kara
 
         private void BackFromOutOfBoundTimeForm()
         {
-
         }
+
         private void GoToOutOfBoundTimeForm()
         {
         }
-        
-        static Page[] NavigationStackState;
+
+        private static Page[] NavigationStackState;
+
         protected override void OnStart()
         {
             CrossConnectivity.Current.ConnectivityChanged += ConnectivityStateChanged;
@@ -590,7 +626,7 @@ namespace Kara
                 if (!result.Success)
                     return result;
                 result = await CalculateDiscounts(SaleOrderData, UnitPrices);
-                if(!result.Success)
+                if (!result.Success)
                     return result;
                 var result2 = await SaveSaleOrder(SaleOrderData);
                 if (!result2.Success)
@@ -609,7 +645,7 @@ namespace Kara
                     await Task.Delay(200);
                     foreach (var Article in SaleOrder.SaleOrderStuffs)
                         Article.SalePrice = UnitPrices[Article.Package.StuffId] * Article.Package.Coefficient;
-                    
+
                     return new ResultSuccess();
                 }
                 catch (Exception err)
@@ -618,6 +654,7 @@ namespace Kara
                 }
             });
         }
+
         public static async Task<ResultSuccess> CalculateDiscounts(SaleOrder SaleOrder, Dictionary<Guid, decimal> UnitPrices)
         {
             return await await Task.Factory.StartNew(async () =>
@@ -625,7 +662,7 @@ namespace Kara
                 try
                 {
                     await Task.Delay(200);
-                    
+
                     var AllSystemStuffs = (await App.DB.GetStuffsAsync()).Data.ToDictionary(a => a.Id);
                     var StuffsSettlementDays = (await App.DB.GetStuffsSettlementDaysAsync()).Data;
                     int SettlementDay = SaleOrder.SettlementType.Day;
@@ -728,6 +765,7 @@ namespace Kara
                 }
             });
         }
+
         public static async Task<ResultSuccess<SaleOrder>> SaveSaleOrder(SaleOrder SaleOrder)
         {
             App.DB.InitTransaction();
@@ -768,7 +806,7 @@ namespace Kara
                     App.DB.RollbackTransaction();
                     return new ResultSuccess<SaleOrder>(false, result.Message);
                 }
-                
+
                 App.DB.CommitTransaction();
                 return new ResultSuccess<SaleOrder>(true, "", SaleOrder);
             }
@@ -813,6 +851,5 @@ namespace Kara
 
             return null;
         }
-
     }
 }

@@ -1,45 +1,39 @@
 ﻿using Kara.Assets;
-using Plugin.Settings;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Xamarin.Forms;
 using Kara.CustomRenderer;
-using Kara.Helpers;
-using Xamarin.Essentials;
+using System;
+using System.Threading.Tasks;
+using Xamarin.Forms;
 
 namespace Kara
 {
     public partial class LoginForm : GradientContentPage
     {
-        Entry ServerAddress = new MyEntry() { HorizontalTextAlignment = TextAlignment.End, Placeholder = "آدرس سرور، مثلا: 192.168.1.2".ReplaceLatinDigits(), LeftRounded = true };
-        Image ServerAddressIcon = new EntryCompanionIcon() { Source = "url.png" };
-        Entry Username = new MyEntry() { HorizontalTextAlignment = TextAlignment.End, Placeholder = "نام کاربری", LeftRounded = true };
-        Image UsernameIcon = new EntryCompanionIcon() { Source = "username.png" };
-        Entry Password = new MyEntry() { HorizontalTextAlignment = TextAlignment.End, Placeholder = "کلمه عبور", IsPassword = true, LeftRounded = true };
-        Image PasswordIcon = new EntryCompanionIcon() { Source = "password.png" };
-        Button LoginButton = new RoundButton() { Text = "ورود", FontAttributes = FontAttributes.Bold };
-        ActivityIndicator BusyIndicator = new ActivityIndicator() { VerticalOptions = LayoutOptions.Center, HorizontalOptions = LayoutOptions.Center, HeightRequest = 30, Color = Color.FromHex("E6EBEF"), IsRunning = false };
-        Label LoginErrorText = new Label() { TextColor = Color.FromHex("f33"), HorizontalTextAlignment = TextAlignment.Center };
+        private Entry ServerAddress = new MyEntry() { HorizontalTextAlignment = TextAlignment.End, Placeholder = "آدرس سرور، مثلا: 192.168.1.2".ReplaceLatinDigits(), LeftRounded = true };
+        private Image ServerAddressIcon = new EntryCompanionIcon() { Source = "url.png" };
+        private Entry Username = new MyEntry() { HorizontalTextAlignment = TextAlignment.End, Placeholder = "نام کاربری", LeftRounded = true };
+        private Image UsernameIcon = new EntryCompanionIcon() { Source = "username.png" };
+        private Entry Password = new MyEntry() { HorizontalTextAlignment = TextAlignment.End, Placeholder = "کلمه عبور", IsPassword = true, LeftRounded = true };
+        private Image PasswordIcon = new EntryCompanionIcon() { Source = "password.png" };
+        private Button LoginButton = new RoundButton() { Text = "ورود", FontAttributes = FontAttributes.Bold };
+        private ActivityIndicator BusyIndicator = new ActivityIndicator() { VerticalOptions = LayoutOptions.Center, HorizontalOptions = LayoutOptions.Center, HeightRequest = 30, Color = Color.FromHex("E6EBEF"), IsRunning = false };
+        private Label LoginErrorText = new Label() { TextColor = Color.FromHex("f33"), HorizontalTextAlignment = TextAlignment.Center };
 
         public LoginForm()
         {
             InitializeComponent();
             NavigationPage.SetHasNavigationBar(this, false);
-            
+
             LoginButton.Clicked += Login;
 
             ServerAddress.Text = App.ServerAddress;
-            if(App.Username.Value != "")
+            if (App.Username.Value != "")
                 Username.Text = App.Username.Value;
 
             BusyIndicator.IsRunning = false;
         }
 
-        Guid LastSizeAllocationId = Guid.NewGuid();
+        private Guid LastSizeAllocationId = Guid.NewGuid();
+
         protected override async void OnSizeAllocated(double width, double height)
         {
             base.OnSizeAllocated(width, height);
@@ -51,7 +45,8 @@ namespace Kara
                 sizeChanged(width, height);
         }
 
-        double LastWidth, LastHeight;
+        private double LastWidth, LastHeight;
+
         public void sizeChanged(double width, double height)
         {
             try
@@ -103,12 +98,18 @@ namespace Kara
             }
         }
 
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+            _ = await App.CheckGps();
+        }
+
         public async void Login(object sender, EventArgs args)
         {
             LoginErrorText.IsVisible = false;
             var _ServerAddress = ServerAddress != null ? ServerAddress.Text != null ? ServerAddress.Text.ReplacePersianDigits() : "" : "";
             App.ServerAddress = _ServerAddress;
-            
+
             var _Username = Username.Text;
             var _Password = Password.Text;
             var ResultTask = Kara.Assets.Connectivity.Login(_Username, _Password);
@@ -123,16 +124,12 @@ namespace Kara
                 LoginErrorText.IsVisible = true;
                 return;
             }
-            
+
             App.UserId.Value = Result.Data.UserId;
             App.Username.Value = _Username;
             App.Password.Value = _Password;
             App.UserPersonnelId.Value = Result.Data.PersonnelId;
             App.UserRealName.Value = Result.Data.RealName;
-
-            var location = await App.CheckGps();
-            if (location == null)
-                return;
 
             await Navigation.PushAsync(new MainMenu()
             {
@@ -140,7 +137,7 @@ namespace Kara
                 EndColor = Color.FromHex("A6CFED")
             });
 
-            if(App.UserId.Value != App.LastLoginUserId.Value)
+            if (App.UserId.Value != App.LastLoginUserId.Value)
             {
                 await App.DB.CleanDataBaseAsync();
                 await Navigation.PushAsync(new UpdateDBForm()
@@ -152,7 +149,5 @@ namespace Kara
             }
             Navigation.RemovePage(this);
         }
-
-        
     }
 }

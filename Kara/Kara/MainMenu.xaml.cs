@@ -15,14 +15,16 @@ namespace Kara
         Label Label_InsertFailedVisit, Label_InsertOrder, Label_Customers, Label_Settings, Label_UpdateDB, Label_Visits, Label_Backups, Label_PartnerReport, Label_Report;
         Image[] MenuImages;
         Label[] MenuLabels;
-        
-        
+
+        private bool _firstTime = true;
+
+
         public MainMenu()
         {
             InitializeComponent();
-            
+
             SetTodayDateAsTitle();
-            
+
             UserNameMenu = new ToolbarItem() { Text = App.UserRealName.Value, Priority = 0, Order = ToolbarItemOrder.Primary };
             this.ToolbarItems.Add(UserNameMenu);
             LogoutMenu = new ToolbarItem() { Text = "خروج", Priority = 0, Order = ToolbarItemOrder.Primary, Icon = "Logout.png" };
@@ -38,7 +40,7 @@ namespace Kara
             Image_Backups = new Image() { Source = "MainMenu_Backups.png" };
             Image_PartnerReport = new Image() { Source = "MainMenu_PartnerReport.png" };
             Image_Report = new Image() { Source = "MainMenu_Reports.png" };
-            
+
             Label_Customers = new Label() { Text = "لیست مشتریان", HorizontalTextAlignment = TextAlignment.Center, FontAttributes = FontAttributes.Bold, FontSize = 15 };
             Label_InsertOrder = new Label() { Text = "ثبت سفارش", HorizontalTextAlignment = TextAlignment.Center, FontAttributes = FontAttributes.Bold, FontSize = 15 };
             Label_InsertFailedVisit = new Label() { Text = "ثبت عدم سفارش", HorizontalTextAlignment = TextAlignment.Center, FontAttributes = FontAttributes.Bold, FontSize = 15 };
@@ -52,7 +54,7 @@ namespace Kara
             MenuImages = new Image[] { Image_Customers, Image_InsertOrder, Image_InsertFailedVisit, Image_Visits, Image_PartnerReport, Image_Report, Image_UpdateDB, Image_Settings, Image_Backups };
             MenuLabels = new Label[] { Label_Customers, Label_InsertOrder, Label_InsertFailedVisit, Label_Visits, Label_PartnerReport, Label_Report, Label_UpdateDB, Label_Settings, Label_Backups };
 
-            
+
 
             Image_Customers.GestureRecognizers.Add(new TapGestureRecognizer(MainMenu_GoToPartnerListForm));
             Image_InsertOrder.GestureRecognizers.Add(new TapGestureRecognizer(MainMenu_GoToOrderInsertForm));
@@ -102,6 +104,12 @@ namespace Kara
         protected override void OnAppearing()
         {
             base.OnAppearing();
+            if(_firstTime)
+            {
+                _firstTime = false;
+                MessagingCenter.Send(this, "MainMenuOpened");
+            }
+
             if (App.FirstGpsDetecting)
             {
                 App.FirstGpsDetecting = false;
@@ -216,7 +224,7 @@ namespace Kara
                 EndColor = Color.FromHex("A6CFED")
             });
         }
-        
+
         private bool CheckGpsConnection()
         {
             if(!App.GpsEnabled)
@@ -227,7 +235,7 @@ namespace Kara
 
             return true;
         }
-        
+
         async void MainMenu_GoToPartnerListForm(View arg1, object arg2)
         {
             if(CheckGpsConnection())

@@ -183,15 +183,6 @@ namespace Kara.Droid
             return StartCommandResult.Sticky;
         }
 
-        public override void OnDestroy()
-        {
-            base.OnDestroy();
-
-            var karaNewServiceIntent = new Intent("com.kara.KaraNewService");
-            karaNewServiceIntent.SetPackage(this.PackageName);
-            this.StartService(karaNewServiceIntent);
-        }
-
         public override IBinder OnBind(Intent intent)
         {
             return null;
