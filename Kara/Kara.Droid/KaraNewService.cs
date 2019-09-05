@@ -71,7 +71,8 @@ namespace Kara.Droid
     {
         public const int SERVICE_RUNNING_NOTIFICATION_ID = 10000;
         String channelId = "foregroundService";
-
+        public const string ACTION_START_SERVICE = "Kara.Droid.action.START_SERVICE";
+        public const string ACTION_STOP_SERVICE = "Kara.Droid.action.STOP_SERVICE";
 
         public static Context MainContext { get; set; }
         public static KaraNewService KaraNewServiceInstance;
@@ -125,6 +126,19 @@ namespace Kara.Droid
             // Code not directly related to publishing the notification has been omitted for clarity.
             // Normally, this method would hold the code to be run when the service is started.
 
+            if (karaServiceIntent.Action!=null && karaServiceIntent.Action.Equals(ACTION_STOP_SERVICE))
+            {
+                StopForeground(true);
+                StopSelf();
+
+                //var mainIntent = new Intent(this, typeof(MainActivity));
+                ////karaServiceIntent.AddFlags(ActivityFlags.);
+                //var pendingmainIntent = PendingIntent.GetActivity(KaraNewService.MainContext, 0, mainIntent, PendingIntentFlags.UpdateCurrent);
+
+
+                return StartCommandResult.Sticky;
+            }
+
             if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
             {
                 NotificationChannel channel = new NotificationChannel(channelId,
@@ -136,41 +150,9 @@ namespace Kara.Droid
                 nm.CreateNotificationChannel(channel);
             }
 
-            //Notification notification;
-            //if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
-            //{
-            //    notification = new Notification.Builder(this, channelId)
-            //            .SetContentTitle("کارا")
-            //            .SetContentText("برنامه کارا در حال اجراست")
-            //            .SetSmallIcon(Resource.Drawable.icon)
-            //            .SetOngoing(true)
-            //            .Build();
-            //}
-            //else
-            //{
-            //    notification = new Notification.Builder(this)
-            //            .SetContentTitle("کارا")
-            //            .SetContentText("برنامه کارا در حال اجراست")
-            //            .SetSmallIcon(Resource.Drawable.icon)
-            //            .SetOngoing(true)
-            //            .Build();
-            //}
-
-            // Create intent for action close
-            //var intentExit = new Intent();
-            //intentExit.SetAction("خروج");
-            //var pIntent1 = PendingIntent.GetBroadcast(MainContext, 0, intentExit, PendingIntentFlags.CancelCurrent);
-
-           
             var mainActivityIntent = new Intent(this, typeof(MainActivity));
-            karaServiceIntent.AddFlags(ActivityFlags.SingleTop);
-            var pendingIntent = PendingIntent.GetActivity(KaraNewService.MainContext, 0, mainActivityIntent, PendingIntentFlags.OneShot);
-
-            var terminateIntent = new Intent();
-            terminateIntent.SetAction("Kara.Droid.MainActivity");
-            terminateIntent.PutExtra("key111", "value111");
-            var pendingTerminateIntent = PendingIntent.GetBroadcast(KaraNewService.MainContext, 0, terminateIntent, PendingIntentFlags.OneShot);
-            //SendBroadcast(terminateIntent);
+            karaServiceIntent.AddFlags(ActivityFlags.SingleTop | ActivityFlags.ClearTask);
+            var pendingIntent = PendingIntent.GetActivity(KaraNewService.MainContext, 0, mainActivityIntent, PendingIntentFlags.UpdateCurrent);
 
             var notification = new Notification.Builder(this, channelId)
                         .SetContentTitle("کارا")
@@ -178,8 +160,7 @@ namespace Kara.Droid
                         .SetSmallIcon(Resource.Drawable.icon)
                         .SetOngoing(true)
                         .SetContentIntent(pendingIntent)
-                        //.AddAction(Resource.Drawable.abc_ic_ab_back_material,"اجرا", pendingIntent)
-                        .AddAction(Resource.Drawable.abc_btn_colored_material,"خروج", pendingTerminateIntent)
+                        .AddAction(BuildStopServiceAction())
                         .Build();
 
             // Enlist this instance of the service as a foreground service
@@ -187,8 +168,19 @@ namespace Kara.Droid
 
             CheckForPointsForeverAsync();
 
-
             return StartCommandResult.Sticky;
+        }
+
+        private Notification.Action BuildStopServiceAction()
+        {
+            var stopServiceIntent = new Intent(this, GetType());
+            stopServiceIntent.SetAction(ACTION_STOP_SERVICE);
+            var stopServicePendingIntent = PendingIntent.GetService(this, 0, stopServiceIntent, 0);
+
+            var builder = new Notification.Action.Builder(Android.Resource.Drawable.IcMediaPause,
+                                                          GetText(Resource.String.StopService),
+                                                          stopServicePendingIntent);
+            return builder.Build();
         }
 
         public override IBinder OnBind(Intent intent)
