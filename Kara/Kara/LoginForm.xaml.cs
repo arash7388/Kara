@@ -106,6 +106,12 @@ namespace Kara
 
         public async void Login(object sender, EventArgs args)
         {
+            var location = await App.CheckGps();
+            if(location==null)
+            {
+                return;
+            }
+
             LoginErrorText.IsVisible = false;
             var _ServerAddress = ServerAddress != null ? ServerAddress.Text != null ? ServerAddress.Text.ReplacePersianDigits() : "" : "";
             App.ServerAddress = _ServerAddress;

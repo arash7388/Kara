@@ -70,7 +70,7 @@ namespace Kara.Droid
     public class KaraNewService : Service, ILocationListener
     {
         public const int SERVICE_RUNNING_NOTIFICATION_ID = 10000;
-        String channelId = "foregroundService";
+        string channelId = "foregroundService";
         public const string ACTION_START_SERVICE = "Kara.Droid.action.START_SERVICE";
         public const string ACTION_STOP_SERVICE = "Kara.Droid.action.STOP_SERVICE";
 
@@ -130,7 +130,7 @@ namespace Kara.Droid
             {
                 StopForeground(true);
                 StopSelf();
-
+                (MainContext as MainActivity).Terminate();
                 //var mainIntent = new Intent(this, typeof(MainActivity));
                 ////karaServiceIntent.AddFlags(ActivityFlags.);
                 //var pendingmainIntent = PendingIntent.GetActivity(KaraNewService.MainContext, 0, mainIntent, PendingIntentFlags.UpdateCurrent);
@@ -183,9 +183,12 @@ namespace Kara.Droid
             return builder.Build();
         }
 
+        public IBinder Binder { get; private set; }
+
         public override IBinder OnBind(Intent intent)
         {
-            return null;
+            this.Binder = new TimestampBinder(this);
+            return this.Binder;
         }
 
 
@@ -467,6 +470,12 @@ namespace Kara.Droid
             {
                 Log.Error("Kara Tracking Service", "exception: " + err.Message + ", StackTrace: " + (err.StackTrace == null ? "---" : err.StackTrace));
             }
+        }
+
+
+        public string GetFormattedTimestamp()
+        {
+            return DateTime.Now.ToString();
         }
     }
 }

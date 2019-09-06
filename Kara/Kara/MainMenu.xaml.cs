@@ -72,7 +72,7 @@ namespace Kara
                 Device.BeginInvokeOnMainThread(() => {
                     bool.TryParse(msg, out bool GpsEnabled);
                     App.GpsEnabled = GpsEnabled;
-                    App.ToastMessageHandler.ShowMessage( msg,Helpers.ToastMessageDuration.Long);
+                    //App.ToastMessageHandler.ShowMessage( msg,Helpers.ToastMessageDuration.Long);
                 });
             });
         }

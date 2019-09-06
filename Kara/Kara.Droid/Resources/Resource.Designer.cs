@@ -9270,6 +9270,9 @@ namespace Kara.Droid
 			// aapt resource value: 0x7f080000
 			public const int Hello = 2131230720;
 			
+			// aapt resource value: 0x7f080054
+			public const int StopService = 2131230804;
+			
 			// aapt resource value: 0x7f08002d
 			public const int abc_action_bar_home_description = 2131230765;
 			

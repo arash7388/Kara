@@ -7,6 +7,7 @@ using Android.Gms.Maps.Model;
 using Android.Graphics;
 using Android.OS;
 using Android.Runtime;
+using Java.Lang;
 using Java.Lang.Reflect;
 using Kara.Assets;
 using Kara.CustomRenderer;
@@ -15,6 +16,7 @@ using Kara.Helpers;
 using System;
 using System.Threading.Tasks;
 using Xamarin.Forms;
+using Exception = System.Exception;
 
 namespace Kara.Droid
 {
@@ -25,7 +27,29 @@ namespace Kara.Droid
         public ComponentName myDeviceAdmin;
         public static Typeface IranSansFont;
         public static MainActivity MainActivityInstance;
-        TerminateIntentReceiver terminateReceiver;
+        //TerminateIntentReceiver terminateReceiver;
+        KaraBoundServiceConnection serviceConnection;
+
+        void DoBindService()
+        {
+            Intent serviceToStart = new Intent(this, typeof(KaraNewService));
+            BindService(serviceToStart, serviceConnection, Bind.AutoCreate);
+            //timestampMessageTextView.Text = "";
+        }
+
+        internal void UpdateUiForBoundService()
+        {
+            //timestampButton.Enabled = true;
+            //stopServiceButton.Enabled = true;
+            //restartServiceButton.Enabled = false;
+
+        }
+        internal void UpdateUiForUnboundService()
+        {
+            //timestampButton.Enabled = false;
+            //stopServiceButton.Enabled = false;
+            //restartServiceButton.Enabled = true;
+        }
 
         protected override void OnCreate(Bundle bundle)
         {
@@ -91,7 +115,7 @@ namespace Kara.Droid
         private void StartService(MainMenu page)
         {
             KaraNewServiceLauncher.StartAndScheduleAlarmManagerForkaraNewService(this);
-            RegisterReceiver(terminateReceiver, new IntentFilter("Kara.Droid.MainActivity"));
+            //RegisterReceiver(terminateReceiver, new IntentFilter("Kara.Droid.MainActivity"));
             //Xamarin.Essentials.Platform.Init(this, bundle); // add this line to your code, it may also be called: bundle
         }
 
@@ -115,7 +139,7 @@ namespace Kara.Droid
                 const string errorFileName = "Fatal.log";
                 var libraryPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal); // iOS: Environment.SpecialFolder.Resources
                 var errorFilePath = System.IO.Path.Combine(libraryPath, errorFileName);
-                var errorMessage = String.Format("Time: {0}\r\nUniversalLineInApp: {1}\r\nSpecialLog: {2}\r\nError: Unhandled Exception\r\n{3}",
+                var errorMessage = System.String.Format("Time: {0}\r\nUniversalLineInApp: {1}\r\nSpecialLog: {2}\r\nError: Unhandled Exception\r\n{3}",
                 DateTime.Now, App.Last5UniversalLineInApp, App.SpecialLog, exception.ToString());
                 if (!string.IsNullOrEmpty(Kara.OrderInsertForm.MultipleRecordsInAllStuffsData_Log))
                     errorMessage = "MultipleRecordsInAllStuffsData_Log: " + Kara.OrderInsertForm.MultipleRecordsInAllStuffsData_Log + ", errorMessage: " + errorMessage;
@@ -254,19 +278,23 @@ namespace Kara.Droid
             Plugin.Permissions.PermissionsImplementation.Current.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }
 
-
+        public void Terminate()
+        {
+            this.FinishAffinity();
+            JavaSystem.Exit(0);
+        }
        
     }
 
-    [BroadcastReceiver(Enabled = true)]
-    [IntentFilter(new[] { "Kara.Droid.MainActivity" })]
-    public class TerminateIntentReceiver : BroadcastReceiver
-    {
-        public override void OnReceive(Context context, Intent intent)
-        {
-            string value = intent.GetStringExtra("key111");
-        }
-    }
+    //[BroadcastReceiver(Enabled = true)]
+    //[IntentFilter(new[] { "Kara.Droid.MainActivity" })]
+    //public class TerminateIntentReceiver : BroadcastReceiver
+    //{
+    //    public override void OnReceive(Context context, Intent intent)
+    //    {
+    //        string value = intent.GetStringExtra("key111");
+    //    }
+    //}
     public class FontsOverride
     {
         public static void SetDefaultFont(string staticTypefaceFieldName, Typeface InsteadFont)
@@ -281,7 +309,7 @@ namespace Kara.Droid
                 staticField.Accessible = true;
                 staticField.Set(null, newTypeface);
             }
-            catch (Exception e)
+            catch (System.Exception e)
             {
                 Console.WriteLine(e.Message);
             }

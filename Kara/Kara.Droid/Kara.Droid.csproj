@@ -359,6 +359,7 @@
     <Compile Include="DeviceAdmin.cs" />
     <Compile Include="Helpers\PlatformSpecifics.cs" />
     <Compile Include="Helpers\Settings.cs" />
+    <Compile Include="KaraBoundService.cs" />
     <Compile Include="MainActivity.cs" />
     <Compile Include="Resources\Resource.Designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

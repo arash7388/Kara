@@ -29,6 +29,7 @@ using Java.Net;
 using ProtoBuf;
 using static Kara.Assets.Connectivity;
 using Newtonsoft.Json;
+using System.Net.NetworkInformation;
 
 namespace Kara.Droid.Helpers
 {
@@ -779,6 +780,39 @@ namespace Kara.Droid.Helpers
                     if (BitConverter.IsLittleEndian)
                         Array.Reverse(LengthBytes);
                     data = LengthBytes.Concat(data).ToArray();
+
+                    //IPGlobalProperties ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
+                    //TcpConnectionInformation[] tcpConnInfoArray = ipGlobalProperties.GetActiveTcpConnections();
+
+                    //foreach (TcpConnectionInformation tcpi in tcpConnInfoArray)
+                    //{
+                    //    if (tcpi.LocalEndPoint.Port == Port)
+                    //    {
+                    //        //isAvailable = false;
+                    //        break;
+                    //    }
+                    //}
+
+                    //string hostname = "89.165.114.174";
+                    //int portno = Port;
+                    //IPAddress ipa = (IPAddress)Dns.GetHostAddresses(hostname)[0];
+
+
+                    //try
+                    //{
+                    //    System.Net.Sockets.Socket sock = new System.Net.Sockets.Socket(System.Net.Sockets.AddressFamily.InterNetwork, System.Net.Sockets.SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+                    //    sock.Connect(ipa, portno);
+                    //    if (sock.Connected == true)  // Port is in use and connection is successful
+                    //    {
+                    //    }
+                    //    //MessageBox.Show("Port is Closed");
+                    //    sock.Close();
+
+                    //}
+                    //catch (System.Net.Sockets.SocketException ex)
+                    //{
+
+                    //}
 
                     TcpClient client = new TcpClient(IP, Port);
                     NetworkStream stream = client.GetStream();
