@@ -154,7 +154,9 @@ namespace Kara.Droid
             karaServiceIntent.AddFlags(ActivityFlags.SingleTop | ActivityFlags.ClearTask);
             var pendingIntent = PendingIntent.GetActivity(KaraNewService.MainContext, 0, mainActivityIntent, PendingIntentFlags.UpdateCurrent);
 
-            var notification = new Notification.Builder(this, channelId)
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+            {
+                var notification = new Notification.Builder(this, channelId)
                         .SetContentTitle("کارا")
                         .SetContentText("برنامه کارا در حال اجراست")
                         .SetSmallIcon(Resource.Drawable.icon)
@@ -163,8 +165,25 @@ namespace Kara.Droid
                         .AddAction(BuildStopServiceAction())
                         .Build();
 
-            // Enlist this instance of the service as a foreground service
-            StartForeground(SERVICE_RUNNING_NOTIFICATION_ID, notification);
+                // Enlist this instance of the service as a foreground service
+                StartForeground(SERVICE_RUNNING_NOTIFICATION_ID, notification);
+            }
+            else
+            {
+                var notificationCompat = new Android.Support.V4.App.NotificationCompat.Builder(this, channelId)
+                     .SetContentTitle("کارا")
+                     .SetContentText("برنامه کارا در حال اجراست")
+                     .SetSmallIcon(Resource.Drawable.icon)
+                     .SetOngoing(true)
+                     .SetContentIntent(pendingIntent)
+                     .AddAction(BuildStopServiceActionCompat())
+                     .Build();
+
+                StartForeground(SERVICE_RUNNING_NOTIFICATION_ID, notificationCompat);
+            }
+            
+
+          
 
             CheckForPointsForeverAsync();
 
@@ -178,6 +197,18 @@ namespace Kara.Droid
             var stopServicePendingIntent = PendingIntent.GetService(this, 0, stopServiceIntent, 0);
 
             var builder = new Notification.Action.Builder(Android.Resource.Drawable.IcMediaPause,
+                                                          GetText(Resource.String.StopService),
+                                                          stopServicePendingIntent);
+            return builder.Build();
+        }
+
+        private Android.Support.V4.App.NotificationCompat.Action BuildStopServiceActionCompat()
+        {
+            var stopServiceIntent = new Intent(this, GetType());
+            stopServiceIntent.SetAction(ACTION_STOP_SERVICE);
+            var stopServicePendingIntent = PendingIntent.GetService(this, 0, stopServiceIntent, 0);
+
+            var builder = new Android.Support.V4.App.NotificationCompat.Action.Builder(Android.Resource.Drawable.IcMediaPause,
                                                           GetText(Resource.String.StopService),
                                                           stopServicePendingIntent);
             return builder.Build();

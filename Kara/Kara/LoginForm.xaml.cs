@@ -106,54 +106,61 @@ namespace Kara
 
         public async void Login(object sender, EventArgs args)
         {
-            var location = await App.CheckGps();
-            if(location==null)
+            try
             {
-                return;
-            }
+                var location = await App.CheckGps();
+                if (location == null)
+                {
+                    return;
+                }
 
-            LoginErrorText.IsVisible = false;
-            var _ServerAddress = ServerAddress != null ? ServerAddress.Text != null ? ServerAddress.Text.ReplacePersianDigits() : "" : "";
-            App.ServerAddress = _ServerAddress;
+                LoginErrorText.IsVisible = false;
+                var _ServerAddress = ServerAddress != null ? ServerAddress.Text != null ? ServerAddress.Text.ReplacePersianDigits() : "" : "";
+                App.ServerAddress = _ServerAddress;
 
-            var _Username = Username.Text;
-            var _Password = Password.Text;
-            var ResultTask = Kara.Assets.Connectivity.Login(_Username, _Password);
+                var _Username = Username.Text;
+                var _Password = Password.Text;
+                var ResultTask = Kara.Assets.Connectivity.Login(_Username, _Password);
 
-            BusyIndicator.IsRunning = true;
-            var Result = await ResultTask;
-            BusyIndicator.IsRunning = false;
+                BusyIndicator.IsRunning = true;
+                var Result = await ResultTask;
+                BusyIndicator.IsRunning = false;
 
-            if (!Result.Success)
-            {
-                LoginErrorText.Text = Result.Message;
-                LoginErrorText.IsVisible = true;
-                return;
-            }
+                if (!Result.Success)
+                {
+                    LoginErrorText.Text = Result.Message;
+                    LoginErrorText.IsVisible = true;
+                    return;
+                }
 
-            App.UserId.Value = Result.Data.UserId;
-            App.Username.Value = _Username;
-            App.Password.Value = _Password;
-            App.UserPersonnelId.Value = Result.Data.PersonnelId;
-            App.UserRealName.Value = Result.Data.RealName;
+                App.UserId.Value = Result.Data.UserId;
+                App.Username.Value = _Username;
+                App.Password.Value = _Password;
+                App.UserPersonnelId.Value = Result.Data.PersonnelId;
+                App.UserRealName.Value = Result.Data.RealName;
 
-            await Navigation.PushAsync(new MainMenu()
-            {
-                StartColor = Color.FromHex("E6EBEF"),
-                EndColor = Color.FromHex("A6CFED")
-            });
-
-            if (App.UserId.Value != App.LastLoginUserId.Value)
-            {
-                await App.DB.CleanDataBaseAsync();
-                await Navigation.PushAsync(new UpdateDBForm()
+                await Navigation.PushAsync(new MainMenu()
                 {
                     StartColor = Color.FromHex("E6EBEF"),
                     EndColor = Color.FromHex("A6CFED")
                 });
-                //App.MajorDeviceSetting.MajorDeviceSettingsChanged(ChangedMajorDeviceSetting.InitialStartup);
+
+                if (App.UserId.Value != App.LastLoginUserId.Value)
+                {
+                    await App.DB.CleanDataBaseAsync();
+                    await Navigation.PushAsync(new UpdateDBForm()
+                    {
+                        StartColor = Color.FromHex("E6EBEF"),
+                        EndColor = Color.FromHex("A6CFED")
+                    });
+                    //App.MajorDeviceSetting.MajorDeviceSettingsChanged(ChangedMajorDeviceSetting.InitialStartup);
+                }
+                Navigation.RemovePage(this);
             }
-            Navigation.RemovePage(this);
+            catch (Exception exc)
+            {
+                throw;
+            }
         }
     }
 }

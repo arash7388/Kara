@@ -16,6 +16,9 @@ using Kara.Helpers;
 using System;
 using System.Threading.Tasks;
 using Xamarin.Forms;
+using Microsoft.AppCenter;
+using Microsoft.AppCenter.Analytics;
+using Microsoft.AppCenter.Crashes;
 using Exception = System.Exception;
 
 namespace Kara.Droid
@@ -53,6 +56,9 @@ namespace Kara.Droid
 
         protected override void OnCreate(Bundle bundle)
         {
+            AppCenter.Start("da02ffa0-e4a9-4292-8423-aee119dd51b4",
+                   typeof(Analytics), typeof(Crashes));
+
             MainActivityInstance = this;
 
             devicePolicyManager = (DevicePolicyManager)GetSystemService(Context.DevicePolicyService);
@@ -128,8 +134,18 @@ namespace Kara.Droid
 
         private static void CurrentDomainOnUnhandledException(object sender, UnhandledExceptionEventArgs unhandledExceptionEventArgs)
         {
-            var newExc = new Exception("CurrentDomainOnUnhandledException", unhandledExceptionEventArgs.ExceptionObject as Exception);
-            LogUnhandledException(newExc);
+            try
+            {
+                var newExc = new Exception("CurrentDomainOnUnhandledException", unhandledExceptionEventArgs.ExceptionObject as Exception);
+                Crashes.TrackError(unhandledExceptionEventArgs.ExceptionObject as Exception);
+                LogUnhandledException(newExc);
+            }
+            catch(Exception e)
+            {
+                //todo
+                Crashes.TrackError(e);
+            }
+            
         }
 
         internal static void LogUnhandledException(Exception exception)
