@@ -1245,6 +1245,9 @@ namespace Kara
 
         private async Task<ResultSuccess<SaleOrder>> SaveSaleOrder()
         {
+            if (!App.GpsEnabled)
+                return new ResultSuccess<SaleOrder>(false, "لطفا مکان یاب را فعال نمایید");
+
             var result = await App.SaveSaleOrder(SaleOrder);
             if(result.Success)
             {

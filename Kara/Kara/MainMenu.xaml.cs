@@ -80,7 +80,7 @@ namespace Kara
         private async void SetTodayDateAsTitle()
         {
             this.Title = DateTime.Now.ToShortStringForDate().ReplaceLatinDigits();
-            await Task.Delay(10000);
+            await Task.Delay(30000);
             SetTodayDateAsTitle();
         }
 
@@ -114,7 +114,7 @@ namespace Kara
             {
                 App.FirstGpsDetecting = false;
                 App.GpsEnabled = true;
-                                var task = Task.Run(async
+                var task = Task.Run(async
                     () =>
                     {
                         var loc = await App.CheckGps();

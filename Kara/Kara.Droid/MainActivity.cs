@@ -20,45 +20,26 @@ using Microsoft.AppCenter;
 using Microsoft.AppCenter.Analytics;
 using Microsoft.AppCenter.Crashes;
 using Exception = System.Exception;
+using Xamarin.Essentials;
+using System.Collections.Generic;
 
 namespace Kara.Droid
 {
     [Activity(Label = "@string/ApplicationName", Icon = "@drawable/icon", Theme = "@style/MainTheme", NoHistory = false, MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
     public class MainActivity : global::Xamarin.Forms.Platform.Android.FormsAppCompatActivity
     {
+        public static string DeviceInformation;
         public DevicePolicyManager devicePolicyManager;
         public ComponentName myDeviceAdmin;
         public static Typeface IranSansFont;
         public static MainActivity MainActivityInstance;
-        //TerminateIntentReceiver terminateReceiver;
-        KaraBoundServiceConnection serviceConnection;
-
-        void DoBindService()
-        {
-            Intent serviceToStart = new Intent(this, typeof(KaraNewService));
-            BindService(serviceToStart, serviceConnection, Bind.AutoCreate);
-            //timestampMessageTextView.Text = "";
-        }
-
-        internal void UpdateUiForBoundService()
-        {
-            //timestampButton.Enabled = true;
-            //stopServiceButton.Enabled = true;
-            //restartServiceButton.Enabled = false;
-
-        }
-        internal void UpdateUiForUnboundService()
-        {
-            //timestampButton.Enabled = false;
-            //stopServiceButton.Enabled = false;
-            //restartServiceButton.Enabled = true;
-        }
 
         protected override void OnCreate(Bundle bundle)
         {
-            AppCenter.Start("da02ffa0-e4a9-4292-8423-aee119dd51b4",
-                   typeof(Analytics), typeof(Crashes));
+            AppCenter.Start("da02ffa0-e4a9-4292-8423-aee119dd51b4",typeof(Analytics), typeof(Crashes));
 
+            DeviceInformation = $"Model :{DeviceInfo.Model}, VersionString:{DeviceInfo.VersionString},Platform:{DeviceInfo.Platform},Version:{DeviceInfo.Version} , Idiom:{DeviceInfo.Idiom}";
+             
             MainActivityInstance = this;
 
             devicePolicyManager = (DevicePolicyManager)GetSystemService(Context.DevicePolicyService);
@@ -71,11 +52,11 @@ namespace Kara.Droid
 
             //////////////////////////////////////////
 
-            AppDomain.CurrentDomain.UnhandledException += CurrentDomainOnUnhandledException;
-            TaskScheduler.UnobservedTaskException += TaskSchedulerOnUnobservedTaskException;
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomainOnUnhandledExceptionHandler;
+            TaskScheduler.UnobservedTaskException += TaskSchedulerOnUnobservedTaskExceptionHandler;
 
-            Xamarin.Forms.Forms.Init(this, bundle);
-            DisplayCrashReport();
+            //Forms.Init(this, bundle);
+            //DisplayCrashReport();
 
             //////////////////////////////////////////
 
@@ -85,7 +66,7 @@ namespace Kara.Droid
 
             Xamarin.FormsMaps.Init(this, bundle);
 
-            global::Xamarin.Forms.Forms.Init(this, bundle);
+            Forms.Init(this, bundle);
 
             OxyPlot.Xamarin.Forms.Platform.Android.PlotViewRenderer.Init();
 
@@ -108,6 +89,7 @@ namespace Kara.Droid
             }
             catch (Exception err)
             {
+                Crashes.TrackError(err, GetDeviceInfoAsDic());
 
             }
 
@@ -116,34 +98,33 @@ namespace Kara.Droid
             LoadApplication(new App());
 
             Xamarin.Essentials.Platform.Init(this, bundle); // add this line to your code, it may also be called: bundle
+            Analytics.TrackEvent("OnCreate", GetDeviceInfoAsDic());
+
         }
 
         private void StartService(MainMenu page)
         {
             KaraNewServiceLauncher.StartAndScheduleAlarmManagerForkaraNewService(this);
-            //RegisterReceiver(terminateReceiver, new IntentFilter("Kara.Droid.MainActivity"));
-            //Xamarin.Essentials.Platform.Init(this, bundle); // add this line to your code, it may also be called: bundle
-        }
+      }
 
-        //#region Error handling
-        private static void TaskSchedulerOnUnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs unobservedTaskExceptionEventArgs)
+        private static void TaskSchedulerOnUnobservedTaskExceptionHandler(object sender, UnobservedTaskExceptionEventArgs unobservedTaskExceptionEventArgs)
         {
             var newExc = new Exception("TaskSchedulerOnUnobservedTaskException", unobservedTaskExceptionEventArgs.Exception);
             LogUnhandledException(newExc);
         }
 
-        private static void CurrentDomainOnUnhandledException(object sender, UnhandledExceptionEventArgs unhandledExceptionEventArgs)
+        private static void CurrentDomainOnUnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs unhandledExceptionEventArgs)
         {
             try
             {
                 var newExc = new Exception("CurrentDomainOnUnhandledException", unhandledExceptionEventArgs.ExceptionObject as Exception);
-                Crashes.TrackError(unhandledExceptionEventArgs.ExceptionObject as Exception);
                 LogUnhandledException(newExc);
             }
             catch(Exception e)
             {
-                //todo
-                Crashes.TrackError(e);
+                var data = new Dictionary<string, string>();
+                data.Add("methodname", "exception occured in CurrentDomainOnUnhandledExceptionHandler");
+                Crashes.TrackError(e, data);
             }
             
         }
@@ -152,6 +133,7 @@ namespace Kara.Droid
         {
             try
             {
+                Crashes.TrackError(exception, GetDeviceInfoAsDic());
                 const string errorFileName = "Fatal.log";
                 var libraryPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal); // iOS: Environment.SpecialFolder.Resources
                 var errorFilePath = System.IO.Path.Combine(libraryPath, errorFileName);
@@ -160,9 +142,6 @@ namespace Kara.Droid
                 if (!string.IsNullOrEmpty(Kara.OrderInsertForm.MultipleRecordsInAllStuffsData_Log))
                     errorMessage = "MultipleRecordsInAllStuffsData_Log: " + Kara.OrderInsertForm.MultipleRecordsInAllStuffsData_Log + ", errorMessage: " + errorMessage;
                 System.IO.File.WriteAllText(errorFilePath, errorMessage);
-
-                // Log to Android Device Logging.
-                Android.Util.Log.Error("Crash Report", errorMessage);
             }
             catch
             {
@@ -170,40 +149,46 @@ namespace Kara.Droid
             }
         }
 
+        private static Dictionary<string, string> GetDeviceInfoAsDic()
+        {
+            var deviceData = new Dictionary<string, string>();
+            deviceData.Add("deviceInfo", DeviceInformation);
+            return deviceData;
+        }
+
         /// <summary>
         // If there is an unhandled exception, the exception information is diplayed
         // on screen the next time the app is started (only in debug configuration)
         /// </summary>
         //[Conditional("DEBUG")]
-        private void DisplayCrashReport()
-        {
-            const string errorFilename = "Fatal.log";
-            var libraryPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
-            var errorFilePath = System.IO.Path.Combine(libraryPath, errorFilename);
+        //private void DisplayCrashReport()
+        //{
+        //    const string errorFilename = "Fatal.log";
+        //    var libraryPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
+        //    var errorFilePath = System.IO.Path.Combine(libraryPath, errorFilename);
 
-            if (!System.IO.File.Exists(errorFilePath))
-            {
-                return;
-            }
+        //    if (!System.IO.File.Exists(errorFilePath))
+        //    {
+        //        return;
+        //    }
 
-            var errorText = System.IO.File.ReadAllText(errorFilePath);
-            new AlertDialog.Builder(this)
-                .SetPositiveButton("ارسال به سرور", async (sender, args) =>
-                {
-                    var SendResult = await Connectivity.SubmitExceptionsLog(errorText);
-                    if (SendResult.Success)
-                        System.IO.File.Delete(errorFilePath);
-                })
-                .SetNegativeButton("انصراف و حذف", (sender, args) =>
-                {
-                    System.IO.File.Delete(errorFilePath);
-                })
-                .SetMessage("در اجرای قبلی نرم افزار خطایی رخ داده است. لطفا برای کمک به ما در بهبود کیفیت برنامه این موارد را برایمان ارسال کنید.")
-                .SetTitle("گزارش خطا")
-                .Show();
-        }
+        //    var errorText = System.IO.File.ReadAllText(errorFilePath);
+        //    new AlertDialog.Builder(this)
+        //        .SetPositiveButton("ارسال به سرور", async (sender, args) =>
+        //        {
+        //            var SendResult = await Connectivity.SubmitExceptionsLog(errorText);
+        //            if (SendResult.Success)
+        //                System.IO.File.Delete(errorFilePath);
+        //        })
+        //        .SetNegativeButton("انصراف و حذف", (sender, args) =>
+        //        {
+        //            System.IO.File.Delete(errorFilePath);
+        //        })
+        //        .SetMessage("در اجرای قبلی نرم افزار خطایی رخ داده است. لطفا برای کمک به ما در بهبود کیفیت برنامه این موارد را برایمان ارسال کنید.")
+        //        .SetTitle("گزارش خطا")
+        //        .Show();
+        //}
 
-        //‪#endregion
 
         public static void InitializeSharedResources(Context Context, ContentResolver ContentResolver)
         {
@@ -243,12 +228,6 @@ namespace Kara.Droid
         protected override void OnStart()
         {
             base.OnStart();
-            //var loc = App.CheckGps().GetAwaiter().GetResult();
-            //if(loc!=null)
-            //{
-            //    MessagingCenter.Send<object, string>(this, "CheckGps", "true");
-            //}
-            //CheckMajorSystemSettingsToBeTruelySet(null);
         }
 
         protected override void OnPause()
@@ -286,10 +265,10 @@ namespace Kara.Droid
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Permission[] grantResults)
         {
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-            if (requestCode == (int)SettingDialougeLauncherRequestCode.GPSPermission)
-            {
-                //CheckMajorSystemSettingsToBeTruelySet(requestCode);
-            }
+            //if (requestCode == (int)SettingDialougeLauncherRequestCode.GPSPermission)
+            //{
+            //    //CheckMajorSystemSettingsToBeTruelySet(requestCode);
+            //}
 
             Plugin.Permissions.PermissionsImplementation.Current.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }
@@ -302,15 +281,7 @@ namespace Kara.Droid
        
     }
 
-    //[BroadcastReceiver(Enabled = true)]
-    //[IntentFilter(new[] { "Kara.Droid.MainActivity" })]
-    //public class TerminateIntentReceiver : BroadcastReceiver
-    //{
-    //    public override void OnReceive(Context context, Intent intent)
-    //    {
-    //        string value = intent.GetStringExtra("key111");
-    //    }
-    //}
+
     public class FontsOverride
     {
         public static void SetDefaultFont(string staticTypefaceFieldName, Typeface InsteadFont)

@@ -51,6 +51,7 @@ namespace Kara
         DynamicGroup[] PartnerGroups;
         KeyValuePair<Label, Switch>[] PartnerGroupSwitchs;
 
+        
         public PartnerChange(Partner Partner, PartnerListForm PartnerListForm, InsertedInformations_Partners InsertedInformations_Partners, bool JustShow)
         {
             InitializeComponent();
@@ -121,7 +122,7 @@ namespace Kara
             ToolbarItem_LocalSave = new ToolbarItem();
             ToolbarItem_LocalSave.Text = "ذخیره محلی";
             ToolbarItem_LocalSave.Icon = "Save.png";
-            ToolbarItem_LocalSave.Activated += SubmitPartnerToStorage;
+            ToolbarItem_LocalSave.Clicked += SubmitPartnerToStorage;
             ToolbarItem_LocalSave.Order = ToolbarItemOrder.Primary;
             ToolbarItem_LocalSave.Priority = 0;
             if (!JustShow)
@@ -512,7 +513,7 @@ namespace Kara
                 {
                     WaitToggle(true);
                     App.ToastMessageHandler.ShowMessage("اطلاعات مشتری با موفقیت به سرور ارسال شد.", Helpers.ToastMessageDuration.Long);
-                    try { Navigation.PopAsync(); } catch (Exception) { }
+                    try { await Navigation.PopAsync(); } catch (Exception) { }
                 }
             }
         }
@@ -532,7 +533,7 @@ namespace Kara
             {
                 WaitToggle(true);
                 App.ToastMessageHandler.ShowMessage("اطلاعات مشتری با موفقیت به صورت محلی ثبت شد.", Helpers.ToastMessageDuration.Long);
-                try { Navigation.PopAsync(); } catch (Exception) { }
+                try { await Navigation.PopAsync(); } catch (Exception) { }
             }
         }
 
@@ -559,6 +560,9 @@ namespace Kara
         {
             try
             {
+                if(!App.GpsEnabled)
+                    return new ResultSuccess<Partner>(false, "لطفا مکان یاب را فعال نمایید");
+
                 if (CityPicker.SelectedIndex == -1)
                     return new ResultSuccess<Partner>(false, "شهر انتخاب نشده است.");
 
@@ -679,9 +683,9 @@ namespace Kara
                 }
 
                 if (PartnerListForm != null)
-                    PartnerListForm.FillPartners();
+                    await PartnerListForm.FillPartners();
                 if (InsertedInformations_Partners != null)
-                    InsertedInformations_Partners.FillPartners();
+                    await InsertedInformations_Partners.FillPartners();
 
                 return new ResultSuccess<Partner>(true, "", EditingPartner);
             }

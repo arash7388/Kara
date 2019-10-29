@@ -196,6 +196,7 @@ namespace Kara
 
         #endregion debugFlags
 
+        public static string DeviceInfo;
         //Settings
         public static SettingField<decimal> VATPercent = new SettingField<decimal>("VATPercent", 0);
 

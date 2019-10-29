@@ -17,6 +17,7 @@ using Android.Util;
 using Kara.Models;
 using Kara.Helpers;
 using Xamarin.Forms;
+using Microsoft.AppCenter.Crashes;
 
 namespace Kara.Droid
 {
@@ -125,67 +126,74 @@ namespace Kara.Droid
         {
             // Code not directly related to publishing the notification has been omitted for clarity.
             // Normally, this method would hold the code to be run when the service is started.
-
-            if (karaServiceIntent.Action!=null && karaServiceIntent.Action.Equals(ACTION_STOP_SERVICE))
+            try
             {
-                StopForeground(true);
-                StopSelf();
-                (MainContext as MainActivity).Terminate();
-                //var mainIntent = new Intent(this, typeof(MainActivity));
-                ////karaServiceIntent.AddFlags(ActivityFlags.);
-                //var pendingmainIntent = PendingIntent.GetActivity(KaraNewService.MainContext, 0, mainIntent, PendingIntentFlags.UpdateCurrent);
 
 
-                return StartCommandResult.Sticky;
+                if (karaServiceIntent != null && karaServiceIntent.Action != null && karaServiceIntent.Action.Equals(ACTION_STOP_SERVICE))
+                {
+                    StopForeground(true);
+                    StopSelf();
+                    (MainContext as MainActivity).Terminate();
+                    //var mainIntent = new Intent(this, typeof(MainActivity));
+                    ////karaServiceIntent.AddFlags(ActivityFlags.);
+                    //var pendingmainIntent = PendingIntent.GetActivity(KaraNewService.MainContext, 0, mainIntent, PendingIntentFlags.UpdateCurrent);
+
+
+                    return StartCommandResult.Sticky;
+                }
+
+                if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+                {
+                    NotificationChannel channel = new NotificationChannel(channelId,
+                            "ForgoundNotifChannel",
+                            Android.App.NotificationImportance.High);
+                    channel.LockscreenVisibility = NotificationVisibility.Public;
+                    NotificationManager nm =
+                            (NotificationManager)GetSystemService(NotificationService);
+                    nm.CreateNotificationChannel(channel);
+                }
+
+                var mainActivityIntent = new Intent(this, typeof(MainActivity));
+                karaServiceIntent.AddFlags(ActivityFlags.SingleTop | ActivityFlags.ClearTask);
+                var pendingIntent = PendingIntent.GetActivity(KaraNewService.MainContext, 0, mainActivityIntent, PendingIntentFlags.UpdateCurrent);
+
+                if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+                {
+                    var notification = new Notification.Builder(this, channelId)
+                            .SetContentTitle("کارا")
+                            .SetContentText("برنامه کارا در حال اجراست")
+                            .SetSmallIcon(Resource.Drawable.icon)
+                            .SetOngoing(true)
+                            .SetContentIntent(pendingIntent)
+                            .AddAction(BuildStopServiceAction())
+                            .Build();
+
+                    // Enlist this instance of the service as a foreground service
+                    StartForeground(SERVICE_RUNNING_NOTIFICATION_ID, notification);
+                }
+                else
+                {
+                    var notificationCompat = new Android.Support.V4.App.NotificationCompat.Builder(this, channelId)
+                         .SetContentTitle("کارا")
+                         .SetContentText("برنامه کارا در حال اجراست")
+                         .SetSmallIcon(Resource.Drawable.icon)
+                         .SetOngoing(true)
+                         .SetContentIntent(pendingIntent)
+                         .AddAction(BuildStopServiceActionCompat())
+                         .Build();
+
+                    StartForeground(SERVICE_RUNNING_NOTIFICATION_ID, notificationCompat);
+                }
+
+                CheckForPointsForeverAsync();
             }
-
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+            catch (Exception ex)
             {
-                NotificationChannel channel = new NotificationChannel(channelId,
-                        "ForgoundNotifChannel",
-                        Android.App.NotificationImportance.High);
-                channel.LockscreenVisibility = NotificationVisibility.Public;
-                NotificationManager nm =
-                        (NotificationManager)GetSystemService(NotificationService);
-                nm.CreateNotificationChannel(channel);
+                var data = new Dictionary<string, string>();
+                data.Add("extra data", "exception occured in OnStartCommand");
+                Crashes.TrackError(ex, data);
             }
-
-            var mainActivityIntent = new Intent(this, typeof(MainActivity));
-            karaServiceIntent.AddFlags(ActivityFlags.SingleTop | ActivityFlags.ClearTask);
-            var pendingIntent = PendingIntent.GetActivity(KaraNewService.MainContext, 0, mainActivityIntent, PendingIntentFlags.UpdateCurrent);
-
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
-            {
-                var notification = new Notification.Builder(this, channelId)
-                        .SetContentTitle("کارا")
-                        .SetContentText("برنامه کارا در حال اجراست")
-                        .SetSmallIcon(Resource.Drawable.icon)
-                        .SetOngoing(true)
-                        .SetContentIntent(pendingIntent)
-                        .AddAction(BuildStopServiceAction())
-                        .Build();
-
-                // Enlist this instance of the service as a foreground service
-                StartForeground(SERVICE_RUNNING_NOTIFICATION_ID, notification);
-            }
-            else
-            {
-                var notificationCompat = new Android.Support.V4.App.NotificationCompat.Builder(this, channelId)
-                     .SetContentTitle("کارا")
-                     .SetContentText("برنامه کارا در حال اجراست")
-                     .SetSmallIcon(Resource.Drawable.icon)
-                     .SetOngoing(true)
-                     .SetContentIntent(pendingIntent)
-                     .AddAction(BuildStopServiceActionCompat())
-                     .Build();
-
-                StartForeground(SERVICE_RUNNING_NOTIFICATION_ID, notificationCompat);
-            }
-            
-
-          
-
-            CheckForPointsForeverAsync();
 
             return StartCommandResult.Sticky;
         }
@@ -216,11 +224,11 @@ namespace Kara.Droid
 
         public IBinder Binder { get; private set; }
 
-        public override IBinder OnBind(Intent intent)
-        {
-            this.Binder = new TimestampBinder(this);
-            return this.Binder;
-        }
+        //public override IBinder OnBind(Intent intent)
+        //{
+        //    this.Binder = new TimestampBinder(this);
+        //    return this.Binder;
+        //}
 
 
         LocationManager locMgr;
@@ -507,6 +515,11 @@ namespace Kara.Droid
         public string GetFormattedTimestamp()
         {
             return DateTime.Now.ToString();
+        }
+
+        public override IBinder OnBind(Intent intent)
+        {
+            throw new NotImplementedException();
         }
     }
 }

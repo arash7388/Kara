@@ -108,21 +108,24 @@ namespace Kara
         {
             try
             {
-                var location = await App.CheckGps();
-                if (location == null)
-                {
-                    return;
-                }
+                BusyIndicator.IsRunning = true;
 
+                var location = App.CheckGps();
+                
                 LoginErrorText.IsVisible = false;
                 var _ServerAddress = ServerAddress != null ? ServerAddress.Text != null ? ServerAddress.Text.ReplacePersianDigits() : "" : "";
                 App.ServerAddress = _ServerAddress;
 
                 var _Username = Username.Text;
                 var _Password = Password.Text;
+                
                 var ResultTask = Kara.Assets.Connectivity.Login(_Username, _Password);
+                await location;
+                if (location == null)
+                {
+                    return;
+                }
 
-                BusyIndicator.IsRunning = true;
                 var Result = await ResultTask;
                 BusyIndicator.IsRunning = false;
 

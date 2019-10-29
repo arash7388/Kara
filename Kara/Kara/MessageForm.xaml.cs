@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AppCenter.Analytics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,16 +23,21 @@ namespace Kara
             var loc = await App.CheckGps();
             if (loc != null)
             {
-                //await Navigation.PushAsync(new MainMenu()
-                //{
-                //    StartColor = Color.FromHex("E6EBEF"),
-                //    EndColor = Color.FromHex("A6CFED")
-                //});
-
                 //Navigation.RemovePage(this);
-                
-                await Navigation.PopToRootAsync();
-                var c = Navigation.NavigationStack.Count;
+
+                if (Navigation.NavigationStack.Any(a => a is MainMenu))
+                    await Navigation.PopToRootAsync();
+                else
+                {
+                    string pushedPages = "";
+                    foreach(var n in Navigation.NavigationStack)
+                    {
+                        pushedPages += n.Title + ",";
+                    }
+                    Analytics.TrackEvent($"RetryButton_Clicked-> Navigation.NavigationStack does not have MainMenu!,pushedPages:{pushedPages}");
+                    await Navigation.PushAsync(new MainMenu());
+                }
+
             }
                
             
