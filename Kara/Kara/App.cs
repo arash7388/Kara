@@ -777,13 +777,23 @@ namespace Kara
                     await App.DB.DeleteSaleOrdersAsync(new Guid[] { SaleOrder.Id });
                 else
                 {
-                    var LocationState = App.LastLocation != null ?
-                        App.LastLocation.DateTime >= DateTime.Now.AddMinutes(-10) ? "OK" : ("App.LastLocation.DateTime = " + App.LastLocation.DateTime.ToString() + " and DateTime.Now = " + DateTime.Now.ToString()) : "App.LastLocation is null";
-                    var LastValidLocation = App.LastLocation != null ? App.LastLocation.DateTime >= DateTime.Now.AddMinutes(-10) ? App.LastLocation : null : null;
+                    var lastKnownLocation = await Geolocation.GetLastKnownLocationAsync();
+                    //var LocationState = App.LastLocation != null ?
+                    //App.LastLocation.DateTime >= DateTime.Now.AddMinutes(-10) ? "OK" : ("App.LastLocation.DateTime = " + App.LastLocation.DateTime.ToString() + " and DateTime.Now = " + DateTime.Now.ToString()) : "App.LastLocation is null";
+                    //var LastValidLocation = App.LastLocation != null ? App.LastLocation.DateTime >= DateTime.Now.AddMinutes(-10) ? App.LastLocation : null : null;
                     //App.ToastMessageHandler.ShowMessage(LocationState, ToastMessageDuration.Long);
-                    SaleOrder.GeoLocation_Latitude = LastValidLocation != null ? (decimal)LastValidLocation.Latitude : new Nullable<decimal>();
-                    SaleOrder.GeoLocation_Longitude = LastValidLocation != null ? (decimal)LastValidLocation.Longitude : new Nullable<decimal>();
-                    SaleOrder.GeoLocation_Accuracy = LastValidLocation != null ? (decimal)LastValidLocation.Accuracy : new Nullable<decimal>();
+                    //SaleOrder.GeoLocation_Latitude = LastValidLocation != null ? (decimal)LastValidLocation.Latitude : new Nullable<decimal>();
+                    //SaleOrder.GeoLocation_Longitude = LastValidLocation != null ? (decimal)LastValidLocation.Longitude : new Nullable<decimal>();
+                    //SaleOrder.GeoLocation_Accuracy = LastValidLocation != null ? (decimal)LastValidLocation.Accuracy : new Nullable<decimal>();
+                    decimal.TryParse(lastKnownLocation.Latitude.ToString(), out decimal lat);
+                    SaleOrder.GeoLocation_Latitude = lat;
+
+                    decimal.TryParse(lastKnownLocation.Longitude.ToString(), out decimal lng);
+                    SaleOrder.GeoLocation_Longitude = lng;
+
+                    decimal.TryParse(lastKnownLocation.Accuracy.ToString(), out decimal accuracy);
+                    SaleOrder.GeoLocation_Accuracy = accuracy;
+
                     SaleOrder.InsertDateTime = DateTime.Now;
                 }
 

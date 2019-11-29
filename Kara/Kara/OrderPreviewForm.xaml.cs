@@ -1207,7 +1207,7 @@ namespace Kara
                 App.ToastMessageHandler.ShowMessage("سفارش با موفقیت به صورت محلی ثبت شد.", Helpers.ToastMessageDuration.Long);
                 var NavigationStackCount = Navigation.NavigationStack.Count() - (PartnerListForm != null || OrdersForm != null ? 1 : 0) - 1;
                 for (int i = 0; i < NavigationStackCount; i++)
-                    try { Navigation.PopAsync(); } catch (Exception) { }
+                    try { await Navigation.PopAsync(); } catch (Exception) { }
                 if (OrdersForm != null)
                     OrdersForm.FilterChanged(null, null);
                 if (PartnerListForm != null)

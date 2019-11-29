@@ -110,37 +110,37 @@ namespace Kara
             {
                 BusyIndicator.IsRunning = true;
 
-                var location = App.CheckGps();
+                var locationTask = App.CheckGps();
                 
                 LoginErrorText.IsVisible = false;
                 var _ServerAddress = ServerAddress != null ? ServerAddress.Text != null ? ServerAddress.Text.ReplacePersianDigits() : "" : "";
                 App.ServerAddress = _ServerAddress;
 
-                var _Username = Username.Text;
-                var _Password = Password.Text;
-                
-                var ResultTask = Kara.Assets.Connectivity.Login(_Username, _Password);
-                await location;
-                if (location == null)
+                var loginTask = Kara.Assets.Connectivity.Login(Username.Text, Password.Text);
+                await locationTask;
+                var loginResult = await loginTask;
+                var tasks = new Task[] { locationTask, loginTask };
+                Task.WaitAll(tasks);
+
+                BusyIndicator.IsRunning = false;
+
+                if (locationTask.Result == null)
                 {
                     return;
                 }
 
-                var Result = await ResultTask;
-                BusyIndicator.IsRunning = false;
-
-                if (!Result.Success)
+                if (!loginResult.Success)
                 {
-                    LoginErrorText.Text = Result.Message;
+                    LoginErrorText.Text = loginResult.Message;
                     LoginErrorText.IsVisible = true;
                     return;
                 }
 
-                App.UserId.Value = Result.Data.UserId;
-                App.Username.Value = _Username;
-                App.Password.Value = _Password;
-                App.UserPersonnelId.Value = Result.Data.PersonnelId;
-                App.UserRealName.Value = Result.Data.RealName;
+                App.UserId.Value = loginResult.Data.UserId;
+                App.Username.Value = Username.Text;
+                App.Password.Value = Password.Text;
+                App.UserPersonnelId.Value = loginResult.Data.PersonnelId;
+                App.UserRealName.Value = loginResult.Data.RealName;
 
                 await Navigation.PushAsync(new MainMenu()
                 {
