@@ -436,15 +436,17 @@ namespace Kara.Assets
                     Position CurrentLocation = new Position(0, 0);
                     if (App.LastLocation != null && App.LastLocation.Latitude.HasValue && App.LastLocation.Longitude.HasValue && App.LastLocation.DateTime > DateTime.Now.AddMinutes(-1))
                         CurrentLocation = new Position(App.LastLocation.Latitude.Value, App.LastLocation.Longitude.Value);
-                    
+
                     var PartnersWithData = (from Partner in AllPartners
-                                            join Route in Routes on Partner.ZoneId equals Route.Id
+                                                //join Route in Routes on Partner.ZoneId equals Route.Id
+                                            join Route in Routes on Partner.ZoneId equals Route.Id into zones
+                                                 from z in zones.DefaultIfEmpty()
                                             join Group in Groups on Partner.Id equals Group.PartnerId into PartnerGroupNames
-                                            from PartnerGroupName in PartnerGroupNames.DefaultIfEmpty()
+                                                 from PartnerGroupName in PartnerGroupNames.DefaultIfEmpty()
                                             join Order in Orders on Partner.Id equals Order.PartnerId into PartnerOrders
-                                            from PartnerOrder in PartnerOrders.DefaultIfEmpty()
+                                                 from PartnerOrder in PartnerOrders.DefaultIfEmpty()
                                             join FailedVisit in FailedVisits on Partner.Id equals FailedVisit.PartnerId into PartnerFailedVisits
-                                            from PartnerFailedVisit in PartnerFailedVisits.DefaultIfEmpty()
+                                                 from PartnerFailedVisit in PartnerFailedVisits.DefaultIfEmpty()
                                             select new PartnerListModel()
                                             {
                                                 Id = Partner.Id,
@@ -452,7 +454,8 @@ namespace Kara.Assets
                                                 Name = Partner.Name,
                                                 LegalName = Partner.LegalName,
                                                 Group = PartnerGroupName != null ? PartnerGroupName.GroupNames : "بدون گروه",
-                                                Zone = Route.CompleteName,
+                                                //Zone = Route.CompleteName,
+                                                Zone = z?.CompleteName,
                                                 Address = Partner.Address,
                                                 Phone = new string[] { Partner.Phone1, Partner.Phone2, Partner.Mobile }.Any(ph => !string.IsNullOrEmpty(ph)) ? new string[] { Partner.Phone1, Partner.Phone2, Partner.Mobile }.Where(ph => !string.IsNullOrEmpty(ph)).Aggregate((sum, x) => sum + "\n" + x) : "",
                                                 HasOrder = PartnerOrder != null,
@@ -2572,7 +2575,7 @@ namespace Kara.Assets
         {
             FetchedDiscountRules = null;
         }
-        public async Task<Dictionary<int, Dictionary<string, List<RuleModel>>>> GeDiscountRulesAsync()
+        public async Task<Dictionary<int, Dictionary<string, List<RuleModel>>>> GetDiscountRulesAsync()
         {
             //if (FetchedDiscountRules == null)
             //{
